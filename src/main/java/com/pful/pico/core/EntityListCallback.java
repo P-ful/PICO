@@ -7,9 +7,10 @@ import java.util.List;
  */
 public interface EntityListCallback
 {
-    /**
-     * @param errorCode
-     * @param entityList
-     */
-    void listed(final PICOErrorCode errorCode, final String type, final List<Entity> entityList);
+	/**
+	 * @param errorCode
+	 * @param type
+	 * @param entityList
+	 */
+	void listed(final PICOErrorCode errorCode, final String type, final List<Entity> entityList);
 }

@@ -5,5 +5,9 @@ package com.pful.pico.core;
  */
 public interface EntityManipulationCallback
 {
+	/**
+	 * @param errorCode
+	 * @param entity
+	 */
 	void manipulated(final PICOErrorCode errorCode, final Entity entity);
 }

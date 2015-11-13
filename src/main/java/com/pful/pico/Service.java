@@ -1,6 +1,6 @@
 package com.pful.pico;
 
-import com.pful.pico.core.Mongo;
+import com.pful.pico.core.MongoDB;
 import com.pful.pico.core.RequestRouter;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
@@ -39,8 +39,8 @@ public class Service
 
 	private void init(final Vertx vertx)
 	{
-		mongoClient = Mongo.getInstance(vertx, new JsonObject().put("connection_string", CONNECTION_STRING)
-		                                                       .put("db_name", DB_NAME));
+		mongoClient = MongoDB.getInstance(vertx, new JsonObject().put("connection_string", CONNECTION_STRING)
+		                                                         .put("db_name", DB_NAME));
 	}
 
 }

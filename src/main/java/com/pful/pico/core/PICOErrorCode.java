@@ -5,6 +5,7 @@ public enum PICOErrorCode
 	Success(0),
 	BadRequest(1),
 	Unauthorized(2),
+	Unexpected(3),
 	NotFound(4),
 	InternalError(5);
 

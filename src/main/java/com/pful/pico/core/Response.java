@@ -9,7 +9,17 @@ public class Response
 	private static final String HEADER_FIELD_PICO_ERROR_CODE = "PICO-Error-Code";
 	private static final String HEADER_FIELD_PICO_ERROR_DESCRIPTION = "PICO-Error-Description";
 
-	public static void render(final PICOErrorCode errorCode, final JsonArray body, final HttpServerResponse response)
+	public static void renderArray(final PICOErrorCode errorCode, final JsonArray body, final HttpServerResponse response)
+	{
+		if (errorCode.equals(PICOErrorCode.Success)) {
+			sendSuccess(body, response);
+		}
+		else {
+			sendErrors(errorCode, response);
+		}
+	}
+
+	public static void render(final PICOErrorCode errorCode, final JsonObject body, final HttpServerResponse response)
 	{
 		if (errorCode.equals(PICOErrorCode.Success)) {
 			sendSuccess(body, response);
@@ -55,16 +65,6 @@ public class Response
 	private static void sendSuccess(final JsonArray body, final HttpServerResponse response)
 	{
 		response.end((body != null) ? body.encodePrettily() : null);
-	}
-
-	public static void render(final PICOErrorCode errorCode, final JsonObject body, final HttpServerResponse response)
-	{
-		if (errorCode.equals(PICOErrorCode.Success)) {
-			sendSuccess(body, response);
-		}
-		else {
-			sendErrors(errorCode, response);
-		}
 	}
 
 	private static void sendSuccess(final JsonObject body, final HttpServerResponse response)

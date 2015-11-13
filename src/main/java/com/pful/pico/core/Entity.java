@@ -1,6 +1,5 @@
 package com.pful.pico.core;
 
-
 import com.google.gson.Gson;
 import com.pful.pico.Service;
 import io.vertx.core.json.JsonObject;
@@ -53,17 +52,6 @@ public class Entity
 	 */
 	private long updatedAt;
 
-	Entity()
-	{
-	}
-
-	Entity(final String appId, final String type, final Map<String, Object> properties, final long createdAt)
-	{
-		this(appId, type, properties);
-		this.createdAt = createdAt;
-		this.updatedAt = createdAt;
-	}
-
 	Entity(final String appId, final String type, final Map<String, Object> properties)
 	{
 		this.appId = appId;
@@ -71,13 +59,16 @@ public class Entity
 		this.properties = properties;
 	}
 
-	Entity(final String appId, final String type, final Map<String, Object> properties, final long createdAt, final long updatedAt)
-	{
-		this(appId, type, properties);
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
-	}
-
+	/**
+	 * Create an entity
+	 *
+	 * @param context    context contains the application-specific information such as an application identifier and token.
+	 * @param type       an entity type in any string.
+	 * @param properties the properties of the entity.
+	 * @param callback   callback is an object that is called when the request has been completed. If the entity is created, PICO calls with a newly created entity instance as a second parameter, or will be null.
+	 * @throws PICOException
+	 * @throws RuntimeException
+	 */
 	public static void create(final ApplicationContext context,
 	                          final String type,
 	                          final Map<String, Object> properties,
@@ -89,35 +80,33 @@ public class Entity
 		requireNonNull(properties);
 		requireNonNull(callback);
 
-		// 1. query to ApplicationContexts
-		//If a document is inserted with an id, and a document with that id already exists, the insert will fail.
-		//save no _id field
-		Service.mongoClient.save(Mongo.COLLECTION_APPLICATION_CONTEXTS, new JsonObject(new Gson().toJson(context)), res -> {
-			if (res.failed()) {
-				res.cause()
-				   .printStackTrace();
-			}
-			else {
-				String id = res.result();
-				System.out.println("Save application context wih id " + id);
-			}
-		});
+		final long createdAt = Instant.now().getEpochSecond();
+		final Entity entity = new Entity(context.getAppId(), type, properties);
 
-		final Entity entity = new Entity(context.getAppId(), type, properties, Instant.now().getEpochSecond());
-		final JsonObject entityInJsonObject = new JsonObject(new Gson().toJson(entity));
-		Service.mongoClient.save(Mongo.COLLECTION_ENTITIES, entityInJsonObject,
+		entity.createdAt = createdAt;
+		entity.updatedAt = createdAt;
+
+		Service.mongoClient.save(MongoDB.COLLECTION_ENTITIES, entity.toJson(),
 		                         res -> {
 			                         if (res.failed()) {
 				                         callback.manipulated(PICOErrorCode.InternalError, null);
 				                         return;
 			                         }
-			                         else {
-				                         entity.setId(res.result());
-				                         callback.manipulated(PICOErrorCode.Success, entity);
-			                         }
+
+			                         entity.id = res.result();
+			                         callback.manipulated(PICOErrorCode.Success, entity);
 		                         });
 	}
 
+	/**
+	 * Get an entity
+	 *
+	 * @param context  context contains the application-specific information such as an application identifier and token.
+	 * @param id       an unique identifier for an entity
+	 * @param callback callback is an object that be called when the request has been completed. If there is an entity related to the parameter 'id', PICO calls with the entity instance, or will be null.
+	 * @throws PICOException
+	 * @throws RuntimeException
+	 */
 	public static void read(final ApplicationContext context, final String id, final EntityManipulationCallback callback)
 			throws PICOException
 	{
@@ -125,93 +114,38 @@ public class Entity
 		requireNonNull(id);
 		requireNonNull(callback);
 
-		JsonObject query = new JsonObject().put("appId", context.getAppId())
-		                                   .put("id", id);
-		// should find a single doc
-		Service.mongoClient.find(Mongo.COLLECTION_ENTITIES, query,
+		final JsonObject query = new JsonObject().put("appId", context.getAppId())
+		                                         .put("_id", id);
+
+		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
 			                         if (res.failed()) {
 				                         callback.manipulated(PICOErrorCode.InternalError, null);
 				                         return;
 			                         }
-			                         else {
-
-				                         if (res.result().isEmpty()) {
-					                         callback.manipulated(PICOErrorCode.NotFound, null);
-					                         return;
-				                         }
-				                         else if (res.result().size() != 1) {
-					                         callback.manipulated(PICOErrorCode.InternalError, null);
-					                         return;
-				                         }
-				                         else {
-					                         String entityInString = res.result().get(0).toString();
-					                         Entity entityFound = new Gson().fromJson(entityInString, Entity.class);
-					                         callback.manipulated(PICOErrorCode.Success, entityFound);
-				                         }
-
+			                         else if (res.result().isEmpty()) {
+				                         callback.manipulated(PICOErrorCode.NotFound, null);
+				                         return;
 			                         }
+
+			                         final String entityInString = res.result().get(0).toString();
+			                         final Entity entityFound = new Gson().fromJson(entityInString, Entity.class);
+
+			                         callback.manipulated(PICOErrorCode.Success, entityFound);
 		                         });
 	}
 
-	static void update(final ApplicationContext context,
-	                   final String id,
-	                   final String type,
-	                   final Map<String, Object> properties,
-	                   final EntityManipulationCallback callback)
-			throws PICOException
-	{
-		requireNonNull(context);
-		requireNonNull(id);
-		requireNonNull(type);
-		requireNonNull(properties);
-		requireNonNull(callback);
-
-		final JsonObject query = new JsonObject().put("app_id", context.getAppId())
-		                                         .put("id", id)
-		                                         .put("type", type);
-		final long updatedAt = Instant.now().getEpochSecond();
-		final JsonObject update = new JsonObject().put("$set", new JsonObject().put("properties", properties)
-		                                                                       .put("updated_at", updatedAt));
-
-		Service.mongoClient.update(Mongo.COLLECTION_ENTITIES, query, update,
-		                           res -> {
-			                           if (res.failed()) {
-				                           callback.manipulated(PICOErrorCode.InternalError, null);
-				                           return;
-			                           }
-			                           else {
-				                           System.out.println(res.result()); // nothing received
-				                           // TODO callback's 2nd param
-				                           Entity entity = new Entity();
-				                           entity.setUpdatedAt(updatedAt);
-				                           callback.manipulated(PICOErrorCode.Success, entity);
-			                           }
-		                           });
-
-	}
-
-	static void delete(final ApplicationContext context, final String id, final EntityManipulationCallback callback)
-			throws PICOException
-	{
-		requireNonNull(context);
-		requireNonNull(id);
-		requireNonNull(callback);
-
-		final JsonObject query = new JsonObject().put("app_id", context.getAppId()).put("id", id);
-
-		Service.mongoClient.removeOne(Mongo.COLLECTION_ENTITIES, query,
-		                              res -> {
-			                              if (res.failed()) {
-				                              callback.manipulated(PICOErrorCode.InternalError, null);
-				                              return;
-			                              }
-			                              else {
-				                              callback.manipulated(PICOErrorCode.Success, null);
-			                              }
-		                              });
-	}
-
+	/**
+	 * List entities
+	 *
+	 * @param context  context contains the application-specific information such as an application identifier and token.
+	 * @param type     an entity type in any string.
+	 * @param offset   A first position in the database of the list
+	 * @param limit    An maximum number of entities that should be included into the list
+	 * @param callback callback is an object that be called when the request has been completed. In any cases PICO calls with an valid List instance even there is no entity.
+	 * @throws PICOException
+	 * @throws RuntimeException
+	 */
 	static void list(final ApplicationContext context,
 	                 final String type,
 	                 final int offset,
@@ -225,23 +159,91 @@ public class Entity
 		requireNonNull(limit);
 		requireNonNull(callback);
 
-		final JsonObject query = new JsonObject().put("app_id", context.getAppId()).put("type", type);
-		final FindOptions option = new FindOptions().setSkip(offset).setLimit(limit);
-		Service.mongoClient.findWithOptions(Mongo.COLLECTION_ENTITIES, query, option,
+		final JsonObject query = new JsonObject().put("appId", context.getAppId())
+		                                         .put("type", type);
+
+		final FindOptions option = new FindOptions().setSkip(offset)
+		                                            .setLimit(limit);
+
+		Service.mongoClient.findWithOptions(MongoDB.COLLECTION_ENTITIES, query, option,
 		                                    res -> {
 			                                    if (res.failed()) {
 				                                    callback.listed(PICOErrorCode.InternalError, null, null);
 				                                    return;
 			                                    }
-			                                    else {
-				                                    List<Entity> entityList = new ArrayList<>();
-				                                    Gson gson = new Gson();
-				                                    for (JsonObject entity : res.result()) {
-					                                    entityList.add(gson.fromJson(String.valueOf(entity), Entity.class));
-				                                    }
-				                                    callback.listed(PICOErrorCode.Success, type, entityList);
+
+			                                    final List<Entity> entityList = new ArrayList<>();
+
+			                                    final Gson gson = new Gson();
+			                                    for (final JsonObject entity : res.result()) {
+				                                    entityList.add(gson.fromJson(String.valueOf(entity), Entity.class));
 			                                    }
+
+			                                    callback.listed(PICOErrorCode.Success, type, entityList);
 		                                    });
+	}
+
+	/**
+	 * Update the fields in the entity
+	 *
+	 * @param callback callback is an object that be called when the request has been completed. In any cases PICO calls with 'this' entity.
+	 * @throws PICOException
+	 * @throws RuntimeException
+	 */
+	void update(final EntityManipulationCallback callback)
+			throws PICOException
+	{
+		requireNonNull(callback);
+
+		final JsonObject query = getDBQuery().put("type", type);
+
+		final long updatedAt = Instant.now().getEpochSecond();
+		final JsonObject update = new JsonObject().put("$set", new JsonObject().put("properties", properties)
+		                                                                       .put("updatedAt", updatedAt));
+
+		final long currentUpdatedAt = Entity.this.updatedAt;
+		Entity.this.updatedAt = updatedAt;
+
+		Service.mongoClient.update(MongoDB.COLLECTION_ENTITIES, query, update,
+		                           res -> {
+			                           if (res.failed()) {
+				                           callback.manipulated(PICOErrorCode.InternalError, null);
+				                           Entity.this.updatedAt = currentUpdatedAt;
+				                           return;
+			                           }
+
+			                           callback.manipulated(PICOErrorCode.Success, Entity.this);
+		                           });
+
+	}
+
+	private JsonObject getDBQuery()
+	{
+		return new JsonObject().put("appId", appId)
+		                       .put("id", id);
+	}
+
+	/**
+	 * Delete the entity. After PICO called the callback object, The entity will be unable to use.
+	 *
+	 * @param callback callback is an object that be called when the request has been completed. In any cases PICO calls with 'this' entity.
+	 * @throws PICOException
+	 * @throws RuntimeException
+	 */
+	void delete(final EntityManipulationCallback callback)
+			throws PICOException
+	{
+		requireNonNull(callback);
+
+		Service.mongoClient.removeOne(MongoDB.COLLECTION_ENTITIES, getDBQuery(),
+		                              res -> {
+			                              if (res.failed()) {
+				                              callback.manipulated(PICOErrorCode.InternalError, Entity.this);
+				                              return;
+			                              }
+
+			                              callback.manipulated(PICOErrorCode.Success, Entity.this);
+		                              });
 	}
 
 	public String getId()
@@ -249,33 +251,43 @@ public class Entity
 		return this.id;
 	}
 
-	private void setId(final String id)
+	public JsonObject toJson()
 	{
-		this.id = id;
+		return new JsonObject(new Gson().toJson(this));
+	}
+
+	public void setType(final String type)
+	{
+		this.type = type;
+	}
+
+	public void setProperties(final Map<String, Object> properties)
+	{
+		this.properties = properties;
 	}
 
 	public long getCreatedAt()
 	{
-		return this.createdAt;
-	}
-
-	public void setCreatedAt(final long createdAt)
-	{
-		this.createdAt = createdAt;
+		return createdAt;
 	}
 
 	public long getUpdatedAt()
 	{
-		return this.updatedAt;
+		return updatedAt;
 	}
 
-	public void setUpdatedAt(long updatedAt)
+	public String getAppId()
 	{
-		this.updatedAt = updatedAt;
+		return appId;
 	}
 
-	public void setAppId(final String appId)
+	public String getType()
 	{
-		this.appId = appId;
+		return type;
+	}
+
+	public Map<String, Object> getProperties()
+	{
+		return properties;
 	}
 }

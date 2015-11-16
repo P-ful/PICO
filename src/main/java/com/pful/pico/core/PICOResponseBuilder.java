@@ -12,15 +12,15 @@ public class PICOResponseBuilder
 	/**
 	 * HttpServerResponse of Vert.x
 	 */
-	private HttpServerResponse vertXResponse;
+	private HttpServerResponse vertxResponse;
 
 	/**
 	 * A constructor
-	 * @param vertXResponse
+	 * @param vertxResponse
 	 */
-	public PICOResponseBuilder(final HttpServerResponse vertXResponse)
+	public PICOResponseBuilder(final HttpServerResponse vertxResponse)
 	{
-		this.vertXResponse = vertXResponse;
+		this.vertxResponse = vertxResponse;
 	}
 
 	/**
@@ -43,8 +43,8 @@ public class PICOResponseBuilder
 		checkArgument(httpStatusCode >= 200 && httpStatusCode < 300,
 		              "httpStatusCode for a success should be in a range between 200 and 299.");
 
-		vertXResponse.setStatusCode(httpStatusCode);
-		return vertXResponse;
+		vertxResponse.setStatusCode(httpStatusCode);
+		return vertxResponse;
 	}
 
 	/**
@@ -73,13 +73,13 @@ public class PICOResponseBuilder
 		checkArgument(httpStatusCode >= 400 && httpStatusCode < 600,
 		              "httpStatusCode for a failure should be in a range between 400 and 599.");
 
-		vertXResponse.setStatusCode(httpStatusCode)
+		vertxResponse.setStatusCode(httpStatusCode)
 		             .putHeader("PICO-Error-Code", errorCodeDetail.toString());
 
 		if (errorDescription != null) {
-			vertXResponse.putHeader("PICO-Error-Description", errorDescription);
+			vertxResponse.putHeader("PICO-Error-Description", errorDescription);
 		}
 
-		return vertXResponse;
+		return vertxResponse;
 	}
 }

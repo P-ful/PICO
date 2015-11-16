@@ -22,8 +22,8 @@ public class RequestRouter
 
 	public static void create(RoutingContext routingContext)
 	{
-		final ApplicationContext appContext = new ApplicationContext(routingContext.request().getHeader(HEADER_FIELD_PICO_APP_ID),
-		                                                             routingContext.request().getHeader(HEADER_FIELD_PICO_ACCESS_TOKEN));
+		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
+
 		final String type = routingContext.request().getParam(PARAM_TYPE);
 		final Map<String, Object> properties = routingContext.data();
 
@@ -48,8 +48,8 @@ public class RequestRouter
 
 	public static void read(RoutingContext routingContext)
 	{
-		final ApplicationContext appContext = new ApplicationContext(routingContext.request().getHeader(HEADER_FIELD_PICO_APP_ID),
-		                                                             routingContext.request().getHeader(HEADER_FIELD_PICO_ACCESS_TOKEN));
+		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
+
 		final String id = routingContext.request().getParam(PARAM_ID);
 
 		try {
@@ -68,9 +68,8 @@ public class RequestRouter
 
 	public static void update(RoutingContext routingContext)
 	{
+		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
 
-		final ApplicationContext appContext = new ApplicationContext(routingContext.request().getHeader(HEADER_FIELD_PICO_APP_ID),
-		                                                             routingContext.request().getHeader(HEADER_FIELD_PICO_ACCESS_TOKEN));
 		final String id = routingContext.request().getParam(PARAM_ID);
 		final String type = (String) routingContext.data().get(DATA_FILED_TYPE);
 		final Map<String, Object> properties = (Map<String, Object>) routingContext.data().get(DATA_FIELD_PROPERTIES);
@@ -120,9 +119,8 @@ public class RequestRouter
 
 	public static void delete(RoutingContext routingContext)
 	{
+		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
 
-		final ApplicationContext appContext = new ApplicationContext(routingContext.request().getHeader(HEADER_FIELD_PICO_APP_ID),
-		                                                             routingContext.request().getHeader(HEADER_FIELD_PICO_ACCESS_TOKEN));
 		final String id = routingContext.request().getParam(PARAM_ID);
 
 		try {
@@ -156,9 +154,8 @@ public class RequestRouter
 
 	public static void list(RoutingContext routingContext)
 	{
+		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
 
-		final ApplicationContext appContext = new ApplicationContext(routingContext.request().getHeader(HEADER_FIELD_PICO_APP_ID),
-		                                                             routingContext.request().getHeader(HEADER_FIELD_PICO_ACCESS_TOKEN));
 		final String type = routingContext.request().getParam(PARAM_TYPE);
 		final int offset = Integer.parseInt(routingContext.request().getParam(PARAM_OFFSET));
 		final int limit = Integer.parseInt(routingContext.request().getParam(PARAM_LIMIT));

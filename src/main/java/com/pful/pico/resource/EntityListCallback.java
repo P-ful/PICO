@@ -1,4 +1,6 @@
-package com.pful.pico.core;
+package com.pful.pico.resource;
+
+import com.pful.pico.core.PICOErrorCode;
 
 import java.util.List;
 
@@ -8,9 +10,9 @@ import java.util.List;
 public interface EntityListCallback
 {
 	/**
-	 * @param errorCode
-	 * @param type
-	 * @param entityList
+	 * @param errorCode error-code
+	 * @param type An entity type in a string
+	 * @param entityList a list of the entities in the type
 	 */
 	void listed(final PICOErrorCode errorCode, final String type, final List<Entity> entityList);
 }

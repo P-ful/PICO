@@ -1,4 +1,6 @@
-package com.pful.pico.core;
+package com.pful.pico.resource;
+
+import com.pful.pico.core.PICOErrorCode;
 
 /**
  * EntityManipulationCallback is used to notify the result of any asynchronous CRUD operation provided by EntityLifeCycle interface.
@@ -6,8 +8,8 @@ package com.pful.pico.core;
 public interface EntityManipulationCallback
 {
 	/**
-	 * @param errorCode
-	 * @param entity
+	 * @param errorCode error-code
+	 * @param entity A manipulated entity
 	 */
 	void manipulated(final PICOErrorCode errorCode, final Entity entity);
 }

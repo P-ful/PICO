@@ -1,7 +1,13 @@
-package com.pful.pico.core;
+package com.pful.pico.resource;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.pful.pico.Service;
+import com.pful.pico.core.ApplicationContext;
+import com.pful.pico.core.PICOErrorCode;
+import com.pful.pico.core.PICOException;
+import com.pful.pico.db.MongoDB;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 
@@ -10,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Objects.requireNonNull;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Entity is a class to represent the information that an user needs.
@@ -18,14 +24,22 @@ import static java.util.Objects.requireNonNull;
  */
 public class Entity
 {
+	public static final String FIELD_APP_ID = "app_id";
+	public static final String FIELD_TYPE = "type";
+	public static final String FIELD_PROPERTIES = "properties";
+	public static final String FIELD_UPDATED_AT = "updated_at";
+	public static final String FIELD_ID = "_id";
+	public static final String FIELD_CREATED_AT = "created_at";
 	/**
 	 * appId is an identifier to recognize which an application have the entity.
 	 */
+	@SerializedName(FIELD_APP_ID)
 	private String appId;
 
 	/**
 	 * id is an unique identifier.
 	 */
+	@SerializedName(FIELD_ID)
 	private String id;
 
 	/**
@@ -45,26 +59,74 @@ public class Entity
 	/**
 	 * createdAt is a unix timestamp representing when the entity was created.
 	 */
+	@SerializedName("created_at")
 	private long createdAt;
 
 	/**
 	 * updatedAt is a unix timestamp representing when the entity was updated.
 	 */
+	@SerializedName(FIELD_UPDATED_AT)
 	private long updatedAt;
 
-	Entity(final String appId, final String type, final Map<String, Object> properties)
+	/**
+	 * dirty is a state representing whether the entity should be synchronized with the database.
+	 * if dirty is true, every field variables excepts appId and id should be reloaded from the database.
+	 */
+	private transient boolean dirty = false;
+
+	/**
+	 * A constructor that is used for create() method.
+	 *
+	 * @param appId      An application-id
+	 * @param type       A type of an entity
+	 * @param properties Properties of an entity
+	 */
+	private Entity(final String appId, final String type, final Map<String, Object> properties)
 	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(type),
+		              "appId and type shouldn't be null or empty.");
+
 		this.appId = appId;
 		this.type = type;
 		this.properties = properties;
+		this.dirty = false;
+	}
+
+	/**
+	 * A constructor that is used for bind() method.
+	 *
+	 * @param appId    An application-id
+	 * @param entityId An entity-id
+	 */
+	public Entity(final String appId, final String entityId)
+	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
+		              "appId and entityId shouldn't be null or empty.");
+
+		this.appId = appId;
+		this.id = entityId;
+		this.dirty = true;
+	}
+
+	/**
+	 * bind make an entity instance depending on the parameters 'appId' and 'entityId'.
+	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
+	 *
+	 * @param appId    An application-id
+	 * @param entityId An entity-id
+	 * @return A entity bound with the parameters 'appId' and 'entityId'
+	 */
+	public static Entity bind(final String appId, final String entityId)
+	{
+		return new Entity(appId, entityId);
 	}
 
 	/**
 	 * Create an entity
 	 *
 	 * @param context    context contains the application-specific information such as an application identifier and token.
-	 * @param type       an entity type in any string.
-	 * @param properties the properties of the entity.
+	 * @param type       An entity type in any string.
+	 * @param properties The properties of the entity or null. If it is null, it means the entity has no properties.
 	 * @param callback   callback is an object that is called when the request has been completed. If the entity is created, PICO calls with a newly created entity instance as a second parameter, or will be null.
 	 * @throws PICOException
 	 * @throws RuntimeException
@@ -75,10 +137,9 @@ public class Entity
 	                          final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		requireNonNull(context);
-		requireNonNull(type);
-		requireNonNull(properties);
-		requireNonNull(callback);
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(type), "type shouldn't be null and empty.");
+		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final long createdAt = Instant.now().getEpochSecond();
 		final Entity entity = new Entity(context.getAppId(), type, properties);
@@ -98,6 +159,11 @@ public class Entity
 		                         });
 	}
 
+	public JsonObject toJson()
+	{
+		return new JsonObject(new Gson().toJson(this));
+	}
+
 	/**
 	 * Get an entity
 	 *
@@ -110,12 +176,12 @@ public class Entity
 	public static void read(final ApplicationContext context, final String id, final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		requireNonNull(context);
-		requireNonNull(id);
-		requireNonNull(callback);
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(id), "id shouldn't be null or empty.");
+		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put("appId", context.getAppId())
-		                                         .put("_id", id);
+		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
+		                                         .put(FIELD_ID, id);
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
@@ -146,21 +212,21 @@ public class Entity
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	static void list(final ApplicationContext context,
-	                 final String type,
-	                 final int offset,
-	                 final int limit,
-	                 final EntityListCallback callback)
+	public static void list(final ApplicationContext context,
+	                        final String type,
+	                        final int offset,
+	                        final int limit,
+	                        final EntityListCallback callback)
 			throws PICOException
 	{
-		requireNonNull(context);
-		requireNonNull(type);
-		requireNonNull(offset);
-		requireNonNull(limit);
-		requireNonNull(callback);
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(type), "type shouldn't be null and empty.");
+		checkArgument(offset >= 0, "offset should greater than equal to zero.");
+		checkArgument(limit > 0, "offset should greater than zero.");
+		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put("appId", context.getAppId())
-		                                         .put("type", type);
+		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
+		                                         .put(FIELD_TYPE, type);
 
 		final FindOptions option = new FindOptions().setSkip(offset)
 		                                            .setLimit(limit);
@@ -190,28 +256,37 @@ public class Entity
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	void update(final EntityManipulationCallback callback)
+	public void update(final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		requireNonNull(callback);
+		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = getDBQuery().put("type", type);
+		final long newUpdatedAt = Instant.now().getEpochSecond();
 
-		final long updatedAt = Instant.now().getEpochSecond();
-		final JsonObject update = new JsonObject().put("$set", new JsonObject().put("properties", properties)
-		                                                                       .put("updatedAt", updatedAt));
+		final JsonObject fields = new JsonObject();
+		fields.put(FIELD_UPDATED_AT, newUpdatedAt);
 
-		final long currentUpdatedAt = Entity.this.updatedAt;
-		Entity.this.updatedAt = updatedAt;
+		if (!Strings.isNullOrEmpty(type)) {
+			fields.put(FIELD_TYPE, type);
+		}
 
-		Service.mongoClient.update(MongoDB.COLLECTION_ENTITIES, query, update,
+		if (properties != null) {
+			fields.put(FIELD_PROPERTIES, properties);
+		}
+
+		final JsonObject update = new JsonObject();
+		update.put("$set", fields);
+
+		Service.mongoClient.update(MongoDB.COLLECTION_ENTITIES,
+		                           getDBQuery(),
+		                           update,
 		                           res -> {
 			                           if (res.failed()) {
-				                           callback.manipulated(PICOErrorCode.InternalError, null);
-				                           Entity.this.updatedAt = currentUpdatedAt;
+				                           callback.manipulated(PICOErrorCode.InternalError, Entity.this);
 				                           return;
 			                           }
 
+			                           Entity.this.updatedAt = newUpdatedAt;
 			                           callback.manipulated(PICOErrorCode.Success, Entity.this);
 		                           });
 
@@ -219,8 +294,8 @@ public class Entity
 
 	private JsonObject getDBQuery()
 	{
-		return new JsonObject().put("appId", appId)
-		                       .put("id", id);
+		return new JsonObject().put(FIELD_APP_ID, appId)
+		                       .put(FIELD_ID, id);
 	}
 
 	/**
@@ -230,12 +305,13 @@ public class Entity
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	void delete(final EntityManipulationCallback callback)
+	public void delete(final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		requireNonNull(callback);
+		checkArgument(callback != null, "callback shouldn't be null.");
 
-		Service.mongoClient.removeOne(MongoDB.COLLECTION_ENTITIES, getDBQuery(),
+		Service.mongoClient.removeOne(MongoDB.COLLECTION_ENTITIES,
+		                              getDBQuery(),
 		                              res -> {
 			                              if (res.failed()) {
 				                              callback.manipulated(PICOErrorCode.InternalError, Entity.this);
@@ -249,21 +325,6 @@ public class Entity
 	public String getId()
 	{
 		return this.id;
-	}
-
-	public JsonObject toJson()
-	{
-		return new JsonObject(new Gson().toJson(this));
-	}
-
-	public void setType(final String type)
-	{
-		this.type = type;
-	}
-
-	public void setProperties(final Map<String, Object> properties)
-	{
-		this.properties = properties;
 	}
 
 	public long getCreatedAt()
@@ -286,8 +347,18 @@ public class Entity
 		return type;
 	}
 
+	public void setType(final String type)
+	{
+		this.type = type;
+	}
+
 	public Map<String, Object> getProperties()
 	{
 		return properties;
+	}
+
+	public void setProperties(final Map<String, Object> properties)
+	{
+		this.properties = properties;
 	}
 }

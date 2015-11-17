@@ -16,7 +16,7 @@ public class PICOResponseBuilder
 
 	/**
 	 * A constructor
-	 * @param vertxResponse
+	 * @param vertxResponse A response object provided by Vert.x
 	 */
 	public PICOResponseBuilder(final HttpServerResponse vertxResponse)
 	{
@@ -28,7 +28,6 @@ public class PICOResponseBuilder
 	 * @throws RuntimeException
 	 */
 	public HttpServerResponse forSuccess()
-			throws PICOException
 	{
 		return forSuccess(200);
 	}

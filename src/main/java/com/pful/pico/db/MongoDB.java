@@ -1,4 +1,4 @@
-package com.pful.pico.core;
+package com.pful.pico.db;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -18,9 +18,6 @@ public class MongoDB
 			mongoClientSingleton.createCollection(COLLECTION_ENTITIES, response -> {
 				if (response.succeeded()) {
 					System.out.println(COLLECTION_ENTITIES + " has been created.");
-				}
-				else {
-					System.out.println(response.cause().getMessage());
 				}
 			});
 		}

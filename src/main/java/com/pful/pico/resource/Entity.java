@@ -75,21 +75,10 @@ public class Entity
 	private transient boolean dirty = false;
 
 	/**
-	 * A constructor that is used for create() method.
-	 *
-	 * @param appId      An application-id
-	 * @param type       A type of an entity
-	 * @param properties Properties of an entity
+	 * A constructor
 	 */
-	private Entity(final String appId, final String type, final Map<String, Object> properties)
+	private Entity()
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(type),
-		              "appId and type shouldn't be null or empty.");
-
-		this.appId = appId;
-		this.type = type;
-		this.properties = properties;
-		this.dirty = false;
 	}
 
 	/**
@@ -98,7 +87,7 @@ public class Entity
 	 * @param appId    An application-id
 	 * @param entityId An entity-id
 	 */
-	public Entity(final String appId, final String entityId)
+	private Entity(final String appId, final String entityId)
 	{
 		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
 		              "appId and entityId shouldn't be null or empty.");
@@ -106,6 +95,27 @@ public class Entity
 		this.appId = appId;
 		this.id = entityId;
 		this.dirty = true;
+	}
+
+
+	/**
+	 * A constructor that is used for create() method.
+	 *
+	 * @param appId      An application-id
+	 * @param entityId   An entity-id
+	 * @param type       A type of an entity
+	 * @param properties Properties of an entity
+	 */
+	private Entity(final String appId, final String entityId, final String type, final Map<String, Object> properties)
+	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
+		              "appId and type shouldn't be null or empty.");
+
+		this.appId = appId;
+		this.id = entityId;
+		this.type = type;
+		this.properties = properties;
+		this.dirty = false;
 	}
 
 	/**
@@ -118,7 +128,50 @@ public class Entity
 	 */
 	public static Entity bind(final String appId, final String entityId)
 	{
-		return new Entity(appId, entityId);
+		return new Entity(appId, entityId, null, null);
+	}
+
+	/**
+	 * bind make an entity instance depending on the parameters 'appId', 'entityId', and 'properties'.
+	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
+	 *
+	 * @param appId    An application-id
+	 * @param entityId An entity-id
+	 * @param type     An entity type in any string.
+	 * @return
+	 */
+	public static Entity bind(final String appId, final String entityId, final String type)
+	{
+		return new Entity(appId, entityId, type, null);
+	}
+
+	/**
+	 * bind make an entity instance depending on the parameters 'appId', 'entityId', and 'properties'.
+	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
+	 *
+	 * @param appId      An application-id
+	 * @param entityId   An entity-id
+	 * @param properties The properties of the entity.
+	 * @return
+	 */
+	public static Entity bind(final String appId, final String entityId, final Map<String, Object> properties)
+	{
+		return new Entity(appId, entityId, null, properties);
+	}
+
+	/**
+	 * bind make an entity instance depending on the parameters 'appId', 'entityId', 'type', and 'properties'.
+	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
+	 *
+	 * @param appId      An application-id
+	 * @param entityId   An entity-id
+	 * @param type       An entity type in any string.
+	 * @param properties The properties of the entity.
+	 * @return
+	 */
+	public static Entity bind(final String appId, final String entityId, final String type, final Map<String, Object> properties)
+	{
+		return new Entity(appId, entityId, type, properties);
 	}
 
 	/**
@@ -142,7 +195,11 @@ public class Entity
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final long createdAt = Instant.now().getEpochSecond();
-		final Entity entity = new Entity(context.getAppId(), type, properties);
+		final Entity entity = new Entity();
+
+		entity.appId = context.getAppId();
+		entity.type = type;
+		entity.properties = properties;
 
 		entity.createdAt = createdAt;
 		entity.updatedAt = createdAt;

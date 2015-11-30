@@ -31,7 +31,7 @@ public class FinderTest
 	}
 
 	@Test
-	public void simpleQueryTest()
+	public void queryTest()
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
 
@@ -52,7 +52,7 @@ public class FinderTest
 	}
 
 	@Test
-	public void simpleQueryTest2()
+	public void queryTest2()
 	{
 		Finder.open()
 		      .allOf(
@@ -60,74 +60,114 @@ public class FinderTest
 				      field("b").is("V"))
 		      .and()
 		      .field("").is("A")
+		      .and()
 		      .field("c").is("G")
 		      .inCollection("")
-		      .execute(result -> {
+		      .execute(results -> {
 
 		      });
 	}
 
 	@Test
-	public void simpleQueryTest3()
+	public void queryTest3()
 	{
 		Finder.open()
 		      .inCollection("")
 		      .execute(result -> {
+
 		      });
 	}
 
 	@Test
-	public void simpleQueryTest4() // valid queries cannot be created.
+	public void queryTest4()
 	{
 		Finder.open()
 		      .allOf(
 				      field("A").is("a")
 		      )
 		      .inCollection("")
+		      .execute(results -> {
+		      });
+
+
+	}
+
+	@Test
+	public void queryTest5()
+	{
+		//{ $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] }
+		Finder.open()
+		      .allOf(
+				      field("price").ne(1.99),
+				      field("price").exists(true)
+		      )
+		      .inCollection("")
 		      .execute(result -> {
+
+		      });
+
+		Finder.open()
+		      .field("price")
+		      .ne(1.99)
+		      .and()
+		      .field("price")
+		      .exists(true)
+		      .inCollection("")
+		      .execute(results -> {
+
 		      });
 	}
 
 	@Test
-	public void simpleQueryTest5()
-	// weird queries, such as { $or : [ { $and : [{}, {}] } ] }
-	// can be created as follows. developer's fault?
+	public void queryTest6()
 	{
+		// { $and : [{ qty : {$in : [5, 15]}}, { tags : { $in : ["appliance", "school"]}}]}
 		Finder.open()
-		      .allOf(
-				      field("").is(""),
-				      field("").is("")
-		      )
-		      .or() // .and()
-		      .inCollection("")
-		      .execute(result -> {
+		      .field("qty")
+		      .in(5, 15)
+		      .and()
+		      .field("tags")
+		      .in("appliances", "school")
+		      .inCollection("A")
+		      .execute(results -> {
+
 		      });
 	}
 
-	
-//	@Test
-//	public void allOfQueryTest()
-//	{
-//		final Finder builder = new Finder();
-//		builder.allOf()
-//		       .field("key1").is("value1")
-//		       .field("key2").is("value2")
-//		       .inCollection("A")
-//		       .execute((results) -> {
-//
-//		       });
-//	}
-//
-//	@Test
-//	public void anyOfQueryTest()
-//	{
-//		final Finder builder = new Finder();
-//		builder.anyOf()
-//		       .field("key1").is("value1")
-//		       .field("key2").is("value2")
-//		       .inCollection("A")
-//		       .execute((results) -> {
-//
-//		       });
-//	}
+	@Test
+	public void queryTest7()
+	{
+		// price: { $not: { $gt: 1.99 } } }
+		Finder.open()
+		      .field("price")
+		      .lte(1.99)
+		      .inCollection("A")
+		      .execute(results -> {
+
+		      });
+	}
+
+	@Test
+	public void queryTest8()
+	{
+		// { $and : [
+		//  { $or : [ { price : 0.99 }, { price : 1.99 } ] },
+		//  { $or : [ { sale : true }, { qty : { $lt : 20 } } ] }
+		//  ]}
+		Finder.open()
+		      .anyOf(
+				      field("price").is(0.99),
+				      field("price").is(1.99)
+		      )
+		      .and()
+		      .anyOf(
+				      field("sale").is(true),
+				      field("qty").lt(20)
+		      )
+		      .inCollection("")
+		      .execute(results -> {
+
+		      });
+	}
+
 }

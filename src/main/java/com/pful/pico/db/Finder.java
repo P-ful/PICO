@@ -55,7 +55,26 @@ public class Finder
 	interface Connector<TReturn>
 	{
 		TReturn is(final Object value);
-		TReturn in(final Object value);
+
+		// comparison operators
+		TReturn eq(final Object value);
+
+		TReturn ne(final Object value);
+
+		TReturn gt(final Number value);
+
+		TReturn gte(final Number value);
+
+		TReturn lt(final Number value);
+
+		TReturn lte(final Number value);
+
+		TReturn in(final Object... values);
+
+		TReturn nin(final Object... values);
+
+		//element operators
+		TReturn exists(final boolean value);
 	}
 
 	public static class Field
@@ -83,7 +102,55 @@ public class Finder
 		}
 
 		@Override
-		public JsonObject in(final Object value)
+		public JsonObject eq(final Object value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject gt(final Number value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject gte(final Number value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject lt(final Number value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject lte(final Number value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject ne(final Object value)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject in(final Object... values)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject nin(final Object... values)
+		{
+			return null;
+		}
+
+		@Override
+		public JsonObject exists(final boolean value)
 		{
 			return null;
 		}
@@ -161,7 +228,55 @@ public class Finder
 		}
 
 		@Override
-		public Finder in(final Object value)
+		public Finder eq(final Object value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder gt(final Number value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder gte(final Number value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder lt(final Number value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder lte(final Number value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder ne(final Object value)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder in(final Object... values)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder nin(final Object... values)
+		{
+			return Finder.this;
+		}
+
+		@Override
+		public Finder exists(final boolean value)
 		{
 			return Finder.this;
 		}

@@ -58,7 +58,8 @@ public class FinderTest
 		      .allOf(
 				      field("a").is("F"),
 				      field("b").is("V"))
-		      .and().field("").is("A")
+		      .and()
+		      .field("").is("A")
 		      .field("c").is("G")
 		      .inCollection("")
 		      .execute(result -> {
@@ -66,6 +67,44 @@ public class FinderTest
 		      });
 	}
 
+	@Test
+	public void simpleQueryTest3()
+	{
+		Finder.open()
+		      .inCollection("")
+		      .execute(result -> {
+		      });
+	}
+
+	@Test
+	public void simpleQueryTest4() // valid queries cannot be created.
+	{
+		Finder.open()
+		      .allOf(
+				      field("A").is("a")
+		      )
+		      .inCollection("")
+		      .execute(result -> {
+		      });
+	}
+
+	@Test
+	public void simpleQueryTest5()
+	// weird queries, such as { $or : [ { $and : [{}, {}] } ] }
+	// can be created as follows. developer's fault?
+	{
+		Finder.open()
+		      .allOf(
+				      field("").is(""),
+				      field("").is("")
+		      )
+		      .or() // .and()
+		      .inCollection("")
+		      .execute(result -> {
+		      });
+	}
+
+	
 //	@Test
 //	public void allOfQueryTest()
 //	{

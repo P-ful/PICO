@@ -26,19 +26,19 @@ public class Finder
 		return new Finder();
 	}
 
-	public SimpleQuery allOf(final JsonObject... objects)
+	public BinaryConnector allOf(final JsonObject... objects)
 	{
-		return new SimpleQuery();
+		return new BinaryConnector();
 	}
 
-	public SimpleQuery anyOf(final JsonObject... objects)
+	public BinaryConnector anyOf(final JsonObject... objects)
 	{
-		return new SimpleQuery();
+		return new BinaryConnector();
 	}
 
-	public SimpleQuery noneOf(final JsonObject... objects)
+	public BinaryConnector noneOf(final JsonObject... objects)
 	{
-		return new SimpleQuery();
+		return new BinaryConnector();
 	}
 
 	public ValueConnector field(final String name)
@@ -55,7 +55,6 @@ public class Finder
 	interface Connector<TReturn>
 	{
 		TReturn is(final Object value);
-
 		TReturn in(final Object value);
 	}
 
@@ -104,16 +103,16 @@ public class Finder
 		}
 	}
 
-	public class SimpleQuery
+	public class BinaryConnector
 	{
-		public ConnectionConnector and()
+		public LogicalConnector and()
 		{
-			return new ConnectionConnector();
+			return new LogicalConnector();
 		}
 
-		public ConnectionConnector or()
+		public LogicalConnector or()
 		{
-			return new ConnectionConnector();
+			return new LogicalConnector();
 		}
 
 		public Executor inCollection(final String name)
@@ -122,21 +121,21 @@ public class Finder
 		}
 	}
 
-	public class ConnectionConnector
+	public class LogicalConnector
 	{
-		public SimpleQuery allOf(final JsonObject... objects)
+		public BinaryConnector allOf(final JsonObject... objects)
 		{
-			return new SimpleQuery();
+			return new BinaryConnector();
 		}
 
-		public SimpleQuery anyOf(final JsonObject... connectors)
+		public BinaryConnector anyOf(final JsonObject... connectors)
 		{
-			return new SimpleQuery();
+			return new BinaryConnector();
 		}
 
-		public SimpleQuery noneOf(final JsonObject... connectors)
+		public BinaryConnector noneOf(final JsonObject... connectors)
 		{
-			return new SimpleQuery();
+			return new BinaryConnector();
 		}
 
 		public ValueConnector field(final String name)

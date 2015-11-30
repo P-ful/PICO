@@ -2,15 +2,12 @@ package com.pful.pico.db;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Created by daeyeon on 11/20/15.
@@ -29,41 +26,24 @@ public class Finder
 		return new Finder();
 	}
 
-	public BinaryConnector allOf(final JsonObject... jsonObjects)
+	public SimpleQuery allOf(final JsonObject... objects)
 	{
-		checkArgument(jsonObjects.length > 0, "");
-
-		final JsonArray jsonArray = new JsonArray();
-
-		for (final JsonObject jsonObject : jsonObjects) {
-			jsonArray.add(jsonObject);
-		}
-
-		query.put("$and", jsonArray);
-		return new BinaryConnector();
+		return new SimpleQuery();
 	}
 
-	public BinaryConnector anyOf(final JsonObject... jsonObjects)
+	public SimpleQuery anyOf(final JsonObject... objects)
 	{
-		for (final JsonObject jsonObject : jsonObjects) {
-
-		}
-
-		return new BinaryConnector();
+		return new SimpleQuery();
 	}
 
-	public BinaryConnector noneOf(final JsonObject... jsonObjects)
+	public SimpleQuery noneOf(final JsonObject... objects)
 	{
-		for (final JsonObject jsonObject : jsonObjects) {
-
-		}
-
-		return new BinaryConnector();
+		return new SimpleQuery();
 	}
 
-	public SimpleQueryConnector field(final String name)
+	public ValueConnector field(final String name)
 	{
-		return new SimpleQueryConnector(name);
+		return new ValueConnector(name);
 	}
 
 	public Executor inCollection(final String name)
@@ -81,18 +61,18 @@ public class Finder
 
 	public static class Field
 	{
-		public static FieldConnector field(final String name)
+		public static JsonConnector field(final String name)
 		{
-			return new FieldConnector(name);
+			return new JsonConnector(name);
 		}
 	}
 
-	public static class FieldConnector
+	public static class JsonConnector
 			implements Connector<JsonObject>
 	{
 		private String name;
 
-		public FieldConnector(final String name)
+		public JsonConnector(final String name)
 		{
 			this.name = name;
 		}
@@ -110,25 +90,67 @@ public class Finder
 		}
 	}
 
-	public class BinaryConnector
+	public static class Executor
 	{
-		public Finder and()
+		public void execute(final Handler<AsyncResult<List<JsonObject>>> resultHandler)
 		{
-			return Finder.this;
-		}
+			final JsonObject query = new JsonObject();
 
-		public Finder or()
-		{
-			return Finder.this;
+//			properties.forEach((key, value) -> {
+//				query.put(key, value);
+//			});
+
+//			MongoDB.mongoClientSingleton.find(collectionName, query, resultHandler);
 		}
 	}
 
-	public class SimpleQueryConnector
+	public class SimpleQuery
+	{
+		public ConnectionConnector and()
+		{
+			return new ConnectionConnector();
+		}
+
+		public ConnectionConnector or()
+		{
+			return new ConnectionConnector();
+		}
+
+		public Executor inCollection(final String name)
+		{
+			return new Executor();
+		}
+	}
+
+	public class ConnectionConnector
+	{
+		public SimpleQuery allOf(final JsonObject... objects)
+		{
+			return new SimpleQuery();
+		}
+
+		public SimpleQuery anyOf(final JsonObject... connectors)
+		{
+			return new SimpleQuery();
+		}
+
+		public SimpleQuery noneOf(final JsonObject... connectors)
+		{
+			return new SimpleQuery();
+		}
+
+		public ValueConnector field(final String name)
+		{
+			return new ValueConnector(name);
+		}
+	}
+
+	public class ValueConnector
 			implements Connector<Finder>
 	{
 		private String name;
 
-		public SimpleQueryConnector(final String name)
+		public ValueConnector(final String name)
 		{
 			this.name = name;
 		}
@@ -136,7 +158,6 @@ public class Finder
 		@Override
 		public Finder is(final Object value)
 		{
-			properties.put(name, value);
 			return Finder.this;
 		}
 
@@ -144,20 +165,6 @@ public class Finder
 		public Finder in(final Object value)
 		{
 			return Finder.this;
-		}
-	}
-
-	public class Executor
-	{
-		public void execute(final Handler<AsyncResult<List<JsonObject>>> resultHandler)
-		{
-			final JsonObject query = new JsonObject();
-
-			properties.forEach((key, value) -> {
-				query.put(key, value);
-			});
-
-			MongoDB.mongoClientSingleton.find(collectionName, query, resultHandler);
 		}
 	}
 }

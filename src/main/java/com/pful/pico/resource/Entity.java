@@ -25,11 +25,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class Entity
 {
 	public static final String FIELD_APP_ID = "app_id";
+	public static final String FIELD_ID = "_id";
 	public static final String FIELD_TYPE = "type";
 	public static final String FIELD_PROPERTIES = "properties";
 	public static final String FIELD_UPDATED_AT = "updated_at";
-	public static final String FIELD_ID = "_id";
 	public static final String FIELD_CREATED_AT = "created_at";
+
 	/**
 	 * appId is an identifier to recognize which an application have the entity.
 	 */
@@ -59,7 +60,7 @@ public class Entity
 	/**
 	 * createdAt is a unix timestamp representing when the entity was created.
 	 */
-	@SerializedName("created_at")
+	@SerializedName(FIELD_CREATED_AT)
 	private long createdAt;
 
 	/**
@@ -67,6 +68,11 @@ public class Entity
 	 */
 	@SerializedName(FIELD_UPDATED_AT)
 	private long updatedAt;
+
+	/**
+	 * groups is an optional field representing where the entity is included.
+	 */
+	private List<String> groups;
 
 	/**
 	 * dirty is a state representing whether the entity should be synchronized with the database.
@@ -96,7 +102,6 @@ public class Entity
 		this.id = entityId;
 		this.dirty = true;
 	}
-
 
 	/**
 	 * A constructor that is used for create() method.

@@ -22,17 +22,16 @@ import java.util.concurrent.CountDownLatch;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EntityTest
 {
-	private static final String APP_ID = "test_app_id";
-	private static final String APP_TOKEN = "test_app_token";
-	private static final String TYPE = "test_type";
 	private static final String PROPERTIES_IN_STRING = "{field0 : {sub_field0 : sub_value0, sub_field1: sub_value1}, field1 : {sub_field0 : sub_value0}}";
 	private static final String TYPE_FOR_UPDATE = "update_test_type";
 	private static final Map<String, Object> PROPERTIES_FOR_UPDATE = new HashMap<>();
 	private static Map<String, Object> PROPERTIES =
 			new Gson().fromJson(PROPERTIES_IN_STRING, new HashMap<String, Object>().getClass());
+
 	private static Vertx vertx = Vertx.vertx();
 	private static Entity entityBound;
-	private static ApplicationContext context = new ApplicationContext(APP_ID, APP_TOKEN);
+	private static ApplicationContext context =
+			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 
 	@BeforeClass
 	public static void setUpBefore()
@@ -87,7 +86,7 @@ public class EntityTest
 		final Entity[] entityPassed = new Entity[1];
 
 		try {
-			Entity.create(context, TYPE, PROPERTIES, (errorCode, entity) -> {
+			Entity.create(context, TestConstants.VALUE_TYPE, PROPERTIES, (errorCode, entity) -> {
 				try {
 					errorCodePassed[0] = errorCode;
 					entityPassed[0] = entity;
@@ -103,7 +102,6 @@ public class EntityTest
 			latch.await();
 
 			testSuccess(errorCodePassed[0], entityPassed[0]);
-
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -120,7 +118,7 @@ public class EntityTest
 		Assert.assertNotNull(entity.getProperties());
 		Assert.assertNotNull(entity.getCreatedAt());
 		Assert.assertNotNull(entity.getUpdatedAt());
-		Assert.assertEquals(APP_ID, entity.getAppId());
+		Assert.assertEquals(TestConstants.VALUE_APP_ID, entity.getAppId());
 	}
 
 	@Test
@@ -131,7 +129,7 @@ public class EntityTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 
 		try {
-			MongoDB.mongoClientSingleton.find(MongoDB.COLLECTION_ENTITIES, new JsonObject().put("app_id", APP_ID),
+			MongoDB.mongoClientSingleton.find(MongoDB.COLLECTION_ENTITIES, new JsonObject().put("app_id", TestConstants.VALUE_APP_ID),
 			                                  res -> {
 				                                  if (res.succeeded()) {
 					                                  final String id = String.valueOf(res.result()
@@ -156,9 +154,8 @@ public class EntityTest
 			latch.await();
 
 			testSuccess(errorCodePassed[0], entityPassed[0]);
-			Assert.assertEquals(TYPE, entityPassed[0].getType());
+			Assert.assertEquals(TestConstants.VALUE_TYPE, entityPassed[0].getType());
 			Assert.assertEquals(PROPERTIES, entityPassed[0].getProperties());
-
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -190,7 +187,6 @@ public class EntityTest
 			latch.await();
 
 			testNotFound(errorCodePassed[0], entityPassed[0]);
-
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -236,7 +232,6 @@ public class EntityTest
 			testSuccess(errorCodePassed[0], entityPassed[0]);
 			Assert.assertEquals(TYPE_FOR_UPDATE, entityPassed[0].getType());
 			Assert.assertEquals(PROPERTIES_FOR_UPDATE, entityPassed[0].getProperties());
-
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -244,7 +239,7 @@ public class EntityTest
 	}
 
 	@Test
-	public void test5_Delete()
+	public void test5delete()
 			throws Exception
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -252,7 +247,6 @@ public class EntityTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 
 		try {
-
 			entityBound.delete(
 					(errorCode, entity) -> {
 						try {
@@ -272,7 +266,6 @@ public class EntityTest
 			testSuccess(errorCodePassed[0], entityPassed[0]);
 			Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
 			Assert.assertNotNull(entityPassed[0].getId());
-
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();

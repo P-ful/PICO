@@ -11,11 +11,10 @@ repositories {
 
 dependencies {
     compile 'com.google.guava:guava:18.0'
-    compile 'io.vertx:vertx-core:3.1.0'
-    compile 'io.vertx:vertx-web:3.1.0'
-    compile 'io.vertx:vertx-unit:3.1.0'
-    compile 'io.vertx:vertx-mongo-client:3.1.0'
+    compile 'io.vertx:vertx-core:3.2.0'
+    compile 'io.vertx:vertx-web:3.2.0'
+    compile 'io.vertx:vertx-unit:3.2.0'
+    compile 'io.vertx:vertx-mongo-client:3.2.0'
     compile 'com.google.code.gson:gson:2.4'
-    compile 'org.mongodb:mongo-java-driver:3.1.1'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

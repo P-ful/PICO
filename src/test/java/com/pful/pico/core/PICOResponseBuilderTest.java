@@ -83,12 +83,6 @@ class DummyHttpServerResponse
 	}
 
 	@Override
-	public boolean writeQueueFull()
-	{
-		return false;
-	}
-
-	@Override
 	public HttpServerResponse drainHandler(final Handler<Void> handler)
 	{
 		return null;
@@ -135,6 +129,12 @@ class DummyHttpServerResponse
 	public MultiMap headers()
 	{
 		return headers;
+	}
+
+	@Override
+	public boolean writeQueueFull()
+	{
+		return false;
 	}
 
 	@Override
@@ -289,5 +289,11 @@ class DummyHttpServerResponse
 	public HttpServerResponse bodyEndHandler(final Handler<Void> handler)
 	{
 		return null;
+	}
+
+	@Override
+	public long bytesWritten()
+	{
+		return 0;
 	}
 }

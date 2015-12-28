@@ -12,7 +12,8 @@ public class Service
 		extends AbstractVerticle
 {
 
-	public static final String CONNECTION_STRING = "mongodb://104.155.221.148:8282";
+	//	public static final String CONNECTION_STRING = "mongodb://104.155.221.148:8282";
+	public static final String CONNECTION_STRING = "mongodb://localhost:27017";
 	public static final String DB_NAME = "pico";
 	public static MongoClient mongoClient;
 

@@ -60,12 +60,12 @@ public class GroupManipulation
 		                                                                    Instant.now()
 		                                                                           .getEpochSecond()));
 
-		final JsonObject query = new JsonObject().put(DB_METHOD_FIND_AND_MODIFY, MongoDB.COLLECTION_ENTITIES)
-		                                         .put(FIND_AND_MODIFY_FIELD_QUERY, condition)
-		                                         .put(FIND_AND_MODIFY_FIELD_UPDATE, update)
-		                                         .put(FIND_AND_MODIFY_FIELD_NEW, true);
+		final JsonObject command = new JsonObject().put(DB_METHOD_FIND_AND_MODIFY, MongoDB.COLLECTION_ENTITIES)
+		                                           .put(FIND_AND_MODIFY_FIELD_QUERY, condition)
+		                                           .put(FIND_AND_MODIFY_FIELD_UPDATE, update)
+		                                           .put(FIND_AND_MODIFY_FIELD_NEW, true);
 
-		Service.mongoClient.runCommand(DB_METHOD_FIND_AND_MODIFY, query,
+		Service.mongoClient.runCommand(DB_METHOD_FIND_AND_MODIFY, command,
 		                               res -> {
 			                               if (res.failed()) {
 				                               callback.manipulated(PICOErrorCode.InternalError, null);
@@ -165,9 +165,8 @@ public class GroupManipulation
 
 			                         res.result()
 			                            .stream()
-			                            .forEach(e ->
-					                                     groupsInSet.addAll(e.getJsonArray(FIELD_GROUPS)
-					                                                         .getList()));
+			                            .forEach(e -> groupsInSet.addAll(e.getJsonArray(FIELD_GROUPS)
+			                                                              .getList()));
 			                         groupsInSet.stream()
 			                                    .forEach(e -> groupsInJsonArray.add(e));
 
@@ -281,7 +280,7 @@ public class GroupManipulation
 	{
 		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId)
 				              && !Strings.isNullOrEmpty(originalGroup) && !Strings.isNullOrEmpty(
-				              newGroup),
+				newGroup),
 		              "appId, entityId, and groups shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
@@ -296,13 +295,13 @@ public class GroupManipulation
 		                                                                    Instant.now()
 		                                                                           .getEpochSecond()));
 
-		final JsonObject query = new JsonObject().put(DB_METHOD_FIND_AND_MODIFY, MongoDB.COLLECTION_ENTITIES)
-		                                         .put(FIND_AND_MODIFY_FIELD_QUERY, condition)
-		                                         .put(FIND_AND_MODIFY_FIELD_UPDATE, update)
-		                                         .put(FIND_AND_MODIFY_FIELD_NEW, false)
-		                                         .put(FIND_AND_MODIFY_FIELD_NEW, true);
+		final JsonObject command = new JsonObject().put(DB_METHOD_FIND_AND_MODIFY, MongoDB.COLLECTION_ENTITIES)
+		                                           .put(FIND_AND_MODIFY_FIELD_QUERY, condition)
+		                                           .put(FIND_AND_MODIFY_FIELD_UPDATE, update)
+		                                           .put(FIND_AND_MODIFY_FIELD_NEW, false)
+		                                           .put(FIND_AND_MODIFY_FIELD_NEW, true);
 
-		Service.mongoClient.runCommand(DB_METHOD_FIND_AND_MODIFY, query,
+		Service.mongoClient.runCommand(DB_METHOD_FIND_AND_MODIFY, command,
 		                               res -> {
 			                               if (res.failed()) {
 				                               callback.manipulated(PICOErrorCode.InternalError, null);

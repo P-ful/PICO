@@ -49,6 +49,11 @@ public class GroupSetOperationTest
 		try {
 			vertx.deployVerticle(Service.class.getName(),
 			                     res -> {
+				                     if (res.failed()) {
+					                     System.err.println("@BeforeClass : " + res.cause());
+					                     System.exit(1);
+				                     }
+
 				                     try {
 					                     TestGroupMaker group1 = new TestGroupMaker(latch);
 					                     new Thread(group1).start();
@@ -284,6 +289,10 @@ public class GroupSetOperationTest
 		{
 			MongoDB.mongoClientSingleton.save(MongoDB.COLLECTION_ENTITIES, entity,
 			                                  resInserted -> {
+				                                  if (resInserted.failed()) {
+					                                  System.err.println("Class TestGroupMaker: " + resInserted.cause());
+					                                  System.exit(1);
+				                                  }
 				                                  GROUP_LIST.add(resInserted.result());
 				                                  latch.countDown();
 			                                  });
@@ -315,6 +324,11 @@ public class GroupSetOperationTest
 		{
 			MongoDB.mongoClientSingleton.save(MongoDB.COLLECTION_ENTITIES, entity,
 			                                  resInserted -> {
+				                                  if (resInserted.failed()) {
+					                                  System.err.println("Class TestGroupElementMaker: " + resInserted.cause());
+					                                  System.exit(1);
+				                                  }
+
 				                                  if (this.groupList.contains(GROUP_LIST.get(0))) {
 					                                  ELEMS_IN_GROUP0.add(resInserted.result());
 				                                  }

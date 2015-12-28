@@ -19,6 +19,9 @@ public class MongoDB
 				if (response.succeeded()) {
 					System.out.println(COLLECTION_ENTITIES + " has been created.");
 				}
+				else {
+					System.err.println(response.cause());
+				}
 			});
 		}
 		return mongoClientSingleton;

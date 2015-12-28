@@ -50,6 +50,11 @@ public class GroupManipulationTest
 		                                          .put(Entity.FIELD_UPDATED_AT, createdAt);
 
 		vertx.deployVerticle(Service.class.getName(), res -> {
+			if(res.failed()){
+				System.err.println(res.cause());
+				System.exit(1);
+			}
+
 			MongoDB.mongoClientSingleton.save(MongoDB.COLLECTION_ENTITIES, entity,
 			                                  resInserted -> {
 				                                  entityIdBeforeClass = resInserted.result();

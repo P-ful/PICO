@@ -4,9 +4,9 @@ import com.google.common.base.Strings;
 import com.pful.pico.Service;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
+import com.pful.pico.db.querybuilder.Finder;
 import io.vertx.core.json.JsonObject;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,9 +55,14 @@ public class GroupSetOperation
 	                                final String group,
 	                                final GroupElementListCallback callback)
 	{
-		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                         .put(GroupManipulation.FIELD_GROUPS,
-		                                              new JsonObject().put("$in", Arrays.asList(group)));
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(GroupManipulation.FIELD_GROUPS).inStrings(group)
+		                               .toJson();
+
+//		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                         .put(GroupManipulation.FIELD_GROUPS,
+//		                                              new JsonObject().put("$in", Arrays.asList(group)));
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {

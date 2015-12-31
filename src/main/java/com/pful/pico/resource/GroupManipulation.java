@@ -5,11 +5,15 @@ import com.pful.pico.Service;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.core.PICOException;
 import com.pful.pico.db.MongoDB;
+import com.pful.pico.db.querybuilder.Finder;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -51,14 +55,19 @@ public class GroupManipulation
 		              "appId, entityId, and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                             .put(Entity.FIELD_ID, entityId)
-		                                             .put(FIELD_GROUPS, new JsonObject().put("$nin", new ArrayList(Arrays.asList(group))));
+		final JsonObject condition = Finder.newQuery()
+		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_ID).is(entityId)
+		                                   .field(FIELD_GROUPS).ninStrings(group)
+		                                   .toJson();
+
+//		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                             .put(Entity.FIELD_ID, entityId)
+//		                                             .put(FIELD_GROUPS, new JsonObject().put("$nin", new ArrayList(Arrays.asList(group))));
+
 		final JsonObject update = new JsonObject().put("$push", new JsonObject().put(FIELD_GROUPS, group))
 		                                          .put("$set",
-		                                               new JsonObject().put(Entity.FIELD_UPDATED_AT,
-		                                                                    Instant.now()
-		                                                                           .getEpochSecond()));
+		                                               new JsonObject().put(Entity.FIELD_UPDATED_AT, Instant.now().getEpochSecond()));
 
 		final JsonObject command = new JsonObject().put(DB_METHOD_FIND_AND_MODIFY, MongoDB.COLLECTION_ENTITIES)
 		                                           .put(FIND_AND_MODIFY_FIELD_QUERY, condition)
@@ -102,7 +111,9 @@ public class GroupManipulation
 		checkArgument(!Strings.isNullOrEmpty(appId), "appId shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId);
+//		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId);
+
+		final JsonObject query = Finder.newQuery().field(Entity.FIELD_APP_ID).is(appId).toJson();
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
@@ -149,9 +160,15 @@ public class GroupManipulation
 		              "appId and entityId shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                         .put(Entity.FIELD_ID, entityId)
-		                                         .put(FIELD_GROUPS, new JsonObject().put("$exists", true));
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_ID).is(entityId)
+		                               .field(FIELD_GROUPS).exists()
+		                               .toJson();
+
+//		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                         .put(Entity.FIELD_ID, entityId)
+//		                                         .put(FIELD_GROUPS, new JsonObject().put("$exists", true));
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
@@ -192,9 +209,14 @@ public class GroupManipulation
 		              "appId and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                         .put(FIELD_GROUPS,
-		                                              new JsonObject().put("$in", new ArrayList<>(Arrays.asList(group))));
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(FIELD_GROUPS).inStrings(group)
+		                               .toJson();
+
+//		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                         .put(FIELD_GROUPS,
+//		                                              new JsonObject().put("$in", new ArrayList<>(Arrays.asList(group))));
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
@@ -207,8 +229,7 @@ public class GroupManipulation
 
 			                         res.result()
 			                            .stream()
-			                            .forEach(e -> entitiesInJsonArray.add(e.getString(Entity.FIELD_ID)
-			                            ));
+			                            .forEach(e -> entitiesInJsonArray.add(e.getString(Entity.FIELD_ID)));
 
 			                         callback.manipulated(PICOErrorCode.Success, new JsonObject().put("elemsInGroup", entitiesInJsonArray));
 		                         });
@@ -231,13 +252,20 @@ public class GroupManipulation
 		              "appId and groups shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                             .put(FIELD_GROUPS, originalGroup);
+		final JsonObject condition = Finder.newQuery()
+		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(FIELD_GROUPS).is(originalGroup)
+		                                   .toJson();
+
+//		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                             .put(FIELD_GROUPS, originalGroup);
+
 		final JsonObject update = new JsonObject().put("$set",
 		                                               new JsonObject().put(FIELD_GROUPS + ".$", newGroup)
 		                                                               .put(Entity.FIELD_UPDATED_AT,
 		                                                                    Instant.now()
 		                                                                           .getEpochSecond()));
+
 		final JsonArray updates = new JsonArray().add(new JsonObject().put(UPDATE_UPDATES_FIELD_QUERY, condition)
 		                                                              .put(UPDATE_UPDATES_FIELD_UPDATE, update)
 		                                                              .put(UPDATE_UPDATES_FIELD_MULTI, true));
@@ -284,10 +312,16 @@ public class GroupManipulation
 		              "appId, entityId, and groups shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                             .put(Entity.FIELD_ID, entityId)
-		                                             .put(FIELD_GROUPS,
-		                                                  new JsonObject().put("$in", new ArrayList(Arrays.asList(originalGroup))));
+		final JsonObject condition = Finder.newQuery()
+		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_ID).is(entityId)
+		                                   .field(FIELD_GROUPS).inStrings(originalGroup)
+		                                   .toJson();
+
+//		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                             .put(Entity.FIELD_ID, entityId)
+//		                                             .put(FIELD_GROUPS,
+//		                                                  new JsonObject().put("$in", new ArrayList(Arrays.asList(originalGroup))));
 
 		final JsonObject update = new JsonObject().put("$set",
 		                                               new JsonObject().put(FIELD_GROUPS + ".$", newGroup)
@@ -339,10 +373,16 @@ public class GroupManipulation
 		              "appId and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                             .put(FIELD_GROUPS,
-		                                                  new JsonObject().put("$in",
-		                                                                       new ArrayList(Arrays.asList(group))));
+		final JsonObject condition = Finder.newQuery()
+		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(FIELD_GROUPS).inStrings(group)
+		                                   .toJson();
+
+//		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                             .put(FIELD_GROUPS,
+//		                                                  new JsonObject().put("$in",
+//		                                                                       new ArrayList(Arrays.asList(group))));
+
 		final JsonObject update = new JsonObject().put("$pull",
 		                                               new JsonObject().put(FIELD_GROUPS, group))
 		                                          .put("$set",
@@ -386,8 +426,14 @@ public class GroupManipulation
 		              "appId, entityId, and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
-		                                             .put(Entity.FIELD_ID, entityId);
+		final JsonObject condition = Finder.newQuery()
+		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_ID).is(entityId)
+		                                   .toJson();
+
+//		final JsonObject condition = new JsonObject().put(Entity.FIELD_APP_ID, appId)
+//		                                             .put(Entity.FIELD_ID, entityId);
+
 		final JsonObject update = new JsonObject().put("$pull",
 		                                               new JsonObject().put(FIELD_GROUPS, group))
 		                                          .put("$set",

@@ -8,6 +8,7 @@ import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.core.PICOException;
 import com.pful.pico.db.MongoDB;
+import com.pful.pico.db.querybuilder.Finder;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 
@@ -242,10 +243,16 @@ public class Entity
 		checkArgument(!Strings.isNullOrEmpty(id), "id shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
-		                                         .put(FIELD_ID, id);
+//		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
+//		                                         .put(FIELD_ID, id);
 
-		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
+		final JsonObject query = Finder.newQuery()
+		                               .field(FIELD_APP_ID).is(context.getAppId())
+		                               .field(FIELD_ID).is(id)
+		                               .toJson();
+
+		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES,
+		                         query,
 		                         res -> {
 			                         if (res.failed()) {
 				                         callback.manipulated(PICOErrorCode.InternalError, null);
@@ -287,8 +294,13 @@ public class Entity
 		checkArgument(limit > 0, "offset should greater than zero.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
-		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
-		                                         .put(FIELD_TYPE, type);
+//		final JsonObject query = new JsonObject().put(FIELD_APP_ID, context.getAppId())
+//		                                         .put(FIELD_TYPE, type);
+
+		final JsonObject query = Finder.newQuery()
+		                               .field(FIELD_APP_ID).is(context.getAppId())
+		                               .field(FIELD_TYPE).is(type)
+		                               .toJson();
 
 		final FindOptions option = new FindOptions().setSkip(offset)
 		                                            .setLimit(limit);
@@ -356,8 +368,12 @@ public class Entity
 
 	private JsonObject getDBQuery()
 	{
-		return new JsonObject().put(FIELD_APP_ID, appId)
-		                       .put(FIELD_ID, id);
+//		return new JsonObject().put(FIELD_APP_ID, appId)
+//		                       .put(FIELD_ID, id);
+		return Finder.newQuery()
+		             .field(FIELD_APP_ID).is(appId)
+		             .field(FIELD_ID).is(id)
+		             .toJson();
 	}
 
 	/**

@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.Collection;
 
 import static com.pful.pico.db.querybuilder.Util.makeArrayToJsonArrayObject;
+import static com.pful.pico.db.querybuilder.Util.makeCollectionToJsonArrayObject;
 
 public class FieldOperation
 		implements ValueOperator<Finder.Statement>
@@ -41,7 +42,19 @@ public class FieldOperation
 	}
 
 	@Override
+	public Finder.Statement eq(final String value)
+	{
+		return is(value);
+	}
+
+	@Override
 	public Finder.Statement ne(final Number value)
+	{
+		return new Finder.Statement(addOperationField("$ne", value));
+	}
+
+	@Override
+	public Finder.Statement ne(final String value)
 	{
 		return new Finder.Statement(addOperationField("$ne", value));
 	}
@@ -176,12 +189,65 @@ public class FieldOperation
 		return new Finder.Statement(makeField(jsonObject));
 	}
 
+	@Override
+	public Finder.Statement allInStringArray(final String[] strings)
+	{
+		return all(makeArrayToJsonArrayObject(strings));
+	}
+
+	@Override
+	public Finder.Statement allInStrings(final String... strings)
+	{
+		return all(makeArrayToJsonArrayObject(strings));
+	}
+
+	@Override
+	public Finder.Statement allInStringCollection(final Collection<String> collection)
+	{
+		return all(makeCollectionToJsonArrayObject(collection));
+	}
+
+	@Override
+	public Finder.Statement allInNumberArray(final Number[] numbers)
+	{
+		return all(makeArrayToJsonArrayObject(numbers));
+	}
+
+	@Override
+	public Finder.Statement allInNumbers(final Number... numbers)
+	{
+		return all(makeArrayToJsonArrayObject(numbers));
+	}
+
+	@Override
+	public Finder.Statement allInNumberCollection(final Collection<Number> collection)
+	{
+		return all(makeCollectionToJsonArrayObject(collection));
+	}
+
+	private Finder.Statement all(final JsonArray conditions)
+	{
+		final JsonObject jsonObject = new JsonObject();
+		jsonObject.put("$all", conditions);
+
+		return new Finder.Statement(makeField(jsonObject));
+	}
+
+
 	private JsonObject addOperationField(final String operationName, final Number value)
 	{
 		final JsonObject jsonObject = new JsonObject();
 		jsonObject.put(operationName, value);
 		return makeField(jsonObject);
 	}
+
+	private JsonObject addOperationField(final String operationName, final String value)
+	{
+		final JsonObject jsonObject = new JsonObject();
+		jsonObject.put(operationName, value);
+		return makeField(jsonObject);
+	}
+
 
 	private JsonObject makeField(final JsonObject jsonElement)
 	{

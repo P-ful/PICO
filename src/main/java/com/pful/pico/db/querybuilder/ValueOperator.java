@@ -13,7 +13,11 @@ public interface ValueOperator<TReturn>
 
 	TReturn eq(final Number value);
 
+	TReturn eq(final String value);
+
 	TReturn ne(final Number value);
+
+	TReturn ne(final String value);
 
 	TReturn gt(final Number value);
 
@@ -48,4 +52,16 @@ public interface ValueOperator<TReturn>
 	TReturn ninNumbers(final Number... numbers);
 
 	TReturn exists();
+
+	TReturn allInStringArray(final String[] strings);
+
+	TReturn allInStrings(final String... strings);
+
+	TReturn allInStringCollection(final Collection<String> collection);
+
+	TReturn allInNumberArray(final Number[] numbers);
+
+	TReturn allInNumbers(final Number... numbers);
+
+	TReturn allInNumberCollection(final Collection<Number> collection);
 }

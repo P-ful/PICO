@@ -11,6 +11,7 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.pful.pico.db.querybuilder.TemplateFieldOperation.convertNameToVariable;
 import static com.pful.pico.db.querybuilder.Util.makeArrayToJsonArrayObject;
+import static com.pful.pico.db.querybuilder.Util.makeCollectionToJsonArrayObject;
 
 public class Finder
 {
@@ -51,8 +52,9 @@ public class Finder
 	{
 		final JsonObject rootNode = new JsonObject();
 
-		conditionList.stream().forEach(e -> e.forEach(
-				entry -> rootNode.put(entry.getKey(), entry.getValue())));
+		conditionList.stream().forEach(
+				e -> e.forEach(
+						entry -> rootNode.put(entry.getKey(), entry.getValue())));
 
 		return rootNode;
 	}
@@ -178,7 +180,19 @@ public class Finder
 		}
 
 		@Override
+		public Expression eq(final String value)
+		{
+			return is(value);
+		}
+
+		@Override
 		public Expression ne(final Number value)
+		{
+			return addOperationField("$ne", value);
+		}
+
+		@Override
+		public Expression ne(final String value)
 		{
 			return addOperationField("$ne", value);
 		}
@@ -311,6 +325,50 @@ public class Finder
 			return makeField(jsonObject);
 		}
 
+		@Override
+		public Expression allInStringArray(final String[] strings)
+		{
+			return all(makeArrayToJsonArrayObject(strings));
+		}
+
+		@Override
+		public Expression allInStrings(final String... strings)
+		{
+			return all(makeArrayToJsonArrayObject(strings));
+		}
+
+		@Override
+		public Expression allInStringCollection(final Collection<String> collection)
+		{
+			return all(makeCollectionToJsonArrayObject(collection));
+		}
+
+		@Override
+		public Expression allInNumberArray(final Number[] numbers)
+		{
+			return all(makeArrayToJsonArrayObject(numbers));
+		}
+
+		@Override
+		public Expression allInNumbers(final Number... numbers)
+		{
+			return all(makeArrayToJsonArrayObject(numbers));
+		}
+
+		@Override
+		public Expression allInNumberCollection(final Collection<Number> collection)
+		{
+			return all(makeCollectionToJsonArrayObject(collection));
+		}
+
+		private Expression all(final JsonArray conditions)
+		{
+			final JsonObject jsonObject = new JsonObject();
+			jsonObject.put("$all", conditions);
+
+			return makeField(jsonObject);
+		}
+
 		private Expression addOperationField(final String operationName, final Number value)
 		{
 			final JsonObject jsonObject = new JsonObject();
@@ -318,6 +376,15 @@ public class Finder
 
 			return makeField(jsonObject);
 		}
+
+		private Expression addOperationField(final String operationName, final String value)
+		{
+			final JsonObject jsonObject = new JsonObject();
+			jsonObject.put(operationName, value);
+
+			return makeField(jsonObject);
+		}
+
 
 		private Expression makeField(final JsonObject jsonElement)
 		{
@@ -327,7 +394,6 @@ public class Finder
 			conditionList.add(jsonObject);
 			return parentExpression;
 		}
-
 	}
 
 	/**

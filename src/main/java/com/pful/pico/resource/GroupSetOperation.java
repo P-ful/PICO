@@ -11,12 +11,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.pful.pico.db.querybuilder.Field.field;
 
 /**
  * Created by youngdocho on 12/8/15.
  */
 public class GroupSetOperation
 {
+//	private static final String QUERY_GETTING_TWO_GROUPS = "QUERY_GETTING_TWO_GROUPS";
+
 	/**
 	 * @param appId    application id
 	 * @param group1   group id referencing an entity
@@ -31,17 +34,110 @@ public class GroupSetOperation
 		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
 		              "appId and groups shouldn't be null or empty.");
 
+//		Query -> { 'app_id' : <#app_id>, $or : [ { 'groups' : <#group_1> }, { 'groups' : <#group_2> }}]}
+
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .anyOf(field(GroupManipulation.FIELD_GROUPS).is(group1),
+		                                      field(GroupManipulation.FIELD_GROUPS).is(group2))
+		                               .toJson();
+
+		performQueryAndDeliver(callback, query);
+	}
+
+	private static void performQueryAndDeliver(final GroupSetOperationCallback callback, final JsonObject query)
+	{
+		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
+		                         res -> {
+			                         if (res.failed()) {
+				                         callback.manipulated(PICOErrorCode.BadRequest, null);
+				                         return;
+			                         }
+
+			                         final Set<String> elements = new HashSet<>();
+
+			                         // TODO Is that better to convert the res to Entity from JsonObject?
+			                         res.result()
+			                            .stream()
+			                            .forEach(e -> elements.add(e.getString(Entity.FIELD_ID)));
+
+			                         callback.manipulated(PICOErrorCode.Success, elements);
+		                         });
+	}
+
+	/**
+	 * @param appId    application id
+	 * @param group1   group id referencing an entity
+	 * @param group2   group id referencing an entity
+	 * @param callback
+	 */
+	public static void intersection(final String appId,
+	                                final String group1,
+	                                final String group2,
+	                                final GroupSetOperationCallback callback)
+	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		              "appId and groups shouldn't be null or empty.");
+
+//		Query -> { 'app_id' : <#app_id>, 'groups' : { $all : [ <#group_1>, <#group_2> ]}}
+
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(GroupManipulation.FIELD_GROUPS).allInStrings(group1, group2)
+		                               .toJson();
+
+		performQueryAndDeliver(callback, query);
+	}
+
+	/**
+	 * @param appId    application id
+	 * @param group1   group id referencing an entity
+	 * @param group2   group id referencing an entity
+	 * @param callback
+	 */
+	public static void difference(final String appId,
+	                              final String group1,
+	                              final String group2,
+	                              final GroupSetOperationCallback callback)
+	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		              "appId and groups shouldn't be null or empty.");
+
+		// Query -> { '$and' : [ { 'groups' : <#group1> } , { 'groups' : { $ne : <#groups2> }}]}
+
+		final JsonObject query = Finder.newQuery()
+		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .allOf(field(GroupManipulation.FIELD_GROUPS).is(group1),
+		                                      field(GroupManipulation.FIELD_GROUPS).ne(group2))
+		                               .toJson();
+
+		performQueryAndDeliver(callback, query);
+	}
+
+	/**
+	 * @param appId    application id
+	 * @param group1   group id referencing an entity
+	 * @param group2   group id referencing an entity
+	 * @param callback
+	 */
+	public static void subset(final String appId,
+	                          final String group1,
+	                          final String group2,
+	                          final GroupLogicalSetOperationCallback callback)
+	{
+		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		              "appId and groups shouldn't be null or empty.");
+
 		getElements(appId, group1,
 		            set1 -> {
 			            getElements(appId, group2,
 			                        set2 -> {
 				                        if (set1 == null || set2 == null) {
-					                        callback.manipulated(PICOErrorCode.BadRequest, null);
+					                        callback.manipulated(PICOErrorCode.BadRequest, false);
 					                        return;
 				                        }
-				                        final Set union = new HashSet(set1);
-				                        union.addAll(set2);
-				                        callback.manipulated(PICOErrorCode.Success, union);
+
+				                        callback.manipulated(PICOErrorCode.Success, set1.containsAll(set2));
 			                        });
 		            });
 	}
@@ -81,93 +177,10 @@ public class GroupSetOperation
 		                         });
 	}
 
-	/**
-	 * @param appId    application id
-	 * @param group1   group id referencing an entity
-	 * @param group2   group id referencing an entity
-	 * @param callback
-	 */
-	public static void intersection(final String appId,
-	                                final String group1,
-	                                final String group2,
-	                                final GroupSetOperationCallback callback)
-	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
-		              "appId and groups shouldn't be null or empty.");
-
-
-		getElements(appId, group1,
-		            set1 -> {
-			            getElements(appId, group2,
-			                        set2 -> {
-				                        if (set1 == null || set2 == null) {
-					                        callback.manipulated(PICOErrorCode.BadRequest, null);
-					                        return;
-				                        }
-
-				                        final Set intersection = new HashSet(set1);
-				                        intersection.retainAll(set2);
-				                        callback.manipulated(PICOErrorCode.Success, intersection);
-			                        });
-		            });
-	}
-
-	/**
-	 * @param appId    application id
-	 * @param group1   group id referencing an entity
-	 * @param group2   group id referencing an entity
-	 * @param callback
-	 */
-	public static void difference(final String appId,
-	                              final String group1,
-	                              final String group2,
-	                              final GroupSetOperationCallback callback)
-	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
-		              "appId and groups shouldn't be null or empty.");
-
-		getElements(appId, group1,
-		            set1 -> {
-			            getElements(appId, group2,
-			                        set2 -> {
-				                        if (set1 == null || set2 == null) {
-					                        callback.manipulated(PICOErrorCode.BadRequest, null);
-					                        return;
-				                        }
-
-				                        final Set difference = new HashSet(set1);
-				                        difference.removeAll(set2);
-				                        callback.manipulated(PICOErrorCode.Success, difference);
-			                        });
-		            });
-	}
-
-	/**
-	 * @param appId    application id
-	 * @param group1   group id referencing an entity
-	 * @param group2   group id referencing an entity
-	 * @param callback
-	 */
-	public static void subset(final String appId,
-	                          final String group1,
-	                          final String group2,
-	                          final GroupLogicalSetOperationCallback callback)
-	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
-		              "appId and groups shouldn't be null or empty.");
-
-		getElements(appId, group1,
-		            set1 -> {
-			            getElements(appId, group2,
-			                        set2 -> {
-				                        if (set1 == null || set2 == null) {
-					                        callback.manipulated(PICOErrorCode.BadRequest, false);
-					                        return;
-				                        }
-
-				                        callback.manipulated(PICOErrorCode.Success, set1.containsAll(set2));
-			                        });
-		            });
+	static {
+//		Finder.registerTemplate("QUERY_GETTING_TWO_GROUPS")
+//		      .templateField(Entity.FIELD_APP_ID).is()
+//		      .anyOf(TemplateField.field(""))
 	}
 
 }

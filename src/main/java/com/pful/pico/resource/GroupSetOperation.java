@@ -1,6 +1,7 @@
 package com.pful.pico.resource;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import com.pful.pico.Service;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
@@ -54,12 +55,14 @@ public class GroupSetOperation
 				                         return;
 			                         }
 
-			                         final Set<String> elements = new HashSet<>();
+			                         final Set<Entity> elements = new HashSet<>();
+
+			                         final Gson gson = new Gson();
 
 			                         // TODO Is that better to convert the res to Entity from JsonObject?
 			                         res.result()
 			                            .stream()
-			                            .forEach(e -> elements.add(e.getString(Entity.FIELD_ID)));
+			                            .forEach(e -> elements.add(gson.fromJson(e.toString(), Entity.class)));
 
 			                         callback.manipulated(PICOErrorCode.Success, elements);
 		                         });
@@ -167,11 +170,13 @@ public class GroupSetOperation
 				                         return;
 			                         }
 
-			                         final Set<String> elemsInSet = new HashSet<>();
+			                         final Set<Entity> elemsInSet = new HashSet<>();
+
+			                         final Gson gson = new Gson();
 
 			                         res.result()
 			                            .stream()
-			                            .forEach(e -> elemsInSet.add(e.getString(Entity.FIELD_ID)));
+			                            .forEach(e -> elemsInSet.add(gson.fromJson(e.toString(), Entity.class)));
 
 			                         callback.listed(elemsInSet);
 		                         });

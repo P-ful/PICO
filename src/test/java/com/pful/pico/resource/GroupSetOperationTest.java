@@ -11,8 +11,8 @@ import org.junit.runners.MethodSorters;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.core.Is.is;
@@ -137,24 +137,26 @@ public class GroupSetOperationTest
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final Set[] resultInSetPassed = new Set[1];
+		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
 		GroupSetOperation.union(TestConstants.VALUE_APP_ID, GROUP_LIST.get(0), GROUP_LIST.get(1),
 		                        (errorCode, result) -> {
 			                        errorCodePassed[0] = errorCode;
-			                        resultInSetPassed[0] = result;
+			                        resultInSetPassed.addAll(result);
 			                        latch.countDown();
 		                        });
 		latch.await();
 
-		testSuccess(errorCodePassed[0], resultInSetPassed[0]);
-		Assert.assertThat(resultInSetPassed[0].size(), is(5));
-		Assert.assertTrue(resultInSetPassed[0].containsAll(ELEMS_IN_GROUP0));
-		Assert.assertTrue(resultInSetPassed[0].containsAll(ELEMS_IN_GROUP1));
-		System.out.println("Union: " + resultInSetPassed[0]);
+		testSuccess(errorCodePassed[0], resultInSetPassed);
+		Assert.assertThat(resultInSetPassed.size(), is(5));
+		Assert.assertTrue(resultInSetPassed.stream()
+		                                   .anyMatch(entity -> ELEMS_IN_GROUP0.stream().anyMatch(id -> entity.getId().contentEquals(id))));
+		Assert.assertTrue(resultInSetPassed.stream()
+		                                   .anyMatch(entity -> ELEMS_IN_GROUP1.stream().anyMatch(id -> entity.getId().contentEquals(id))));
+		System.out.println("Union: " + resultInSetPassed);
 	}
 
-	private void testSuccess(final PICOErrorCode picoErrorCode, final Set resultInSet)
+	private void testSuccess(final PICOErrorCode picoErrorCode, final Collection<Entity> resultInSet)
 	{
 		Assert.assertEquals(PICOErrorCode.Success, picoErrorCode);
 		Assert.assertNotNull(resultInSet);
@@ -166,18 +168,18 @@ public class GroupSetOperationTest
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final Set[] resultInSetPassed = new Set[1];
+		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
 		GroupSetOperation.intersection(TestConstants.VALUE_APP_ID, GROUP_LIST.get(0), GROUP_LIST.get(1),
 		                               (errorCode, result) -> {
 			                               errorCodePassed[0] = errorCode;
-			                               resultInSetPassed[0] = result;
+			                               resultInSetPassed.addAll(result);
 			                               latch.countDown();
 		                               });
 		latch.await();
-		testSuccess(errorCodePassed[0], resultInSetPassed[0]);
-		Assert.assertThat(resultInSetPassed[0].size(), is(2));
-		System.out.println("Interaction: " + resultInSetPassed[0]);
+		testSuccess(errorCodePassed[0], resultInSetPassed);
+		Assert.assertThat(resultInSetPassed.size(), is(2));
+		System.out.println("Interaction: " + resultInSetPassed);
 	}
 
 	@Test
@@ -187,18 +189,18 @@ public class GroupSetOperationTest
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final Set[] resultInSetPassed = new Set[1];
+		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
 		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, GROUP_LIST.get(1), GROUP_LIST.get(2),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
-			                             resultInSetPassed[0] = result;
+			                             resultInSetPassed.addAll(result);
 			                             latch.countDown();
 		                             });
 		latch.await();
-		testSuccess(errorCodePassed[0], resultInSetPassed[0]);
-		Assert.assertThat(resultInSetPassed[0].size(), is(2));
-		System.out.println("Difference1: " + resultInSetPassed[0]);
+		testSuccess(errorCodePassed[0], resultInSetPassed);
+		Assert.assertThat(resultInSetPassed.size(), is(2));
+		System.out.println("Difference1: " + resultInSetPassed);
 
 	}
 
@@ -209,18 +211,18 @@ public class GroupSetOperationTest
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final Set[] resultInSetPassed = new Set[1];
+		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
 		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, GROUP_LIST.get(2), GROUP_LIST.get(1),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
-			                             resultInSetPassed[0] = result;
+			                             resultInSetPassed.addAll(result);
 			                             latch.countDown();
 		                             });
 		latch.await();
-		testSuccess(errorCodePassed[0], resultInSetPassed[0]);
-		Assert.assertThat(resultInSetPassed[0].size(), is(1));
-		System.out.println("Difference2: " + resultInSetPassed[0]);
+		testSuccess(errorCodePassed[0], resultInSetPassed);
+		Assert.assertThat(resultInSetPassed.size(), is(1));
+		System.out.println("Difference2: " + resultInSetPassed);
 
 	}
 

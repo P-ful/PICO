@@ -290,4 +290,10 @@ class DummyHttpServerResponse
 	{
 		return null;
 	}
+
+	@Override
+	public long bytesWritten()
+	{
+		return 0;
+	}
 }

@@ -25,8 +25,15 @@ import static org.hamcrest.core.Is.is;
  * ----------------------------------
  * the above data set is created as follows:
  * entity0 [entity3, entity4, entity5, entity6]
- * entity1 [entity5, entity7, entity7]
+ * entity1 [entity5, entity6, entity7]
  * entity2 [entity3, entity6]
+ * ---
+ * In makeTestElems(),
+ * entity3.groups: [entity0, entity2]
+ * entity4.groups: [entity0]
+ * entity5.groups: [entity0, entity1]
+ * entity6.groups: [entity0, entity1, entity2]
+ * entity7.groups: [entity1]
  * <p>
  * Created by youngdocho on 12/8/15.
  */
@@ -36,7 +43,7 @@ public class GroupSetOperationTest
 	private static boolean isElemSettingDone;
 	private static Vertx vertx = Vertx.vertx();
 
-	private static List<String> GROUP_LIST = new ArrayList<>();
+	private static List<? super String> GROUP_LIST = new ArrayList<>();
 	private static List<String> ELEMS_IN_GROUP0 = new ArrayList<>();
 	private static List<String> ELEMS_IN_GROUP1 = new ArrayList<>();
 	private static List<String> ELEMS_IN_GROUP2 = new ArrayList<>();
@@ -85,15 +92,15 @@ public class GroupSetOperationTest
 	public static void closeMongodb()
 			throws InterruptedException
 	{
-		final CountDownLatch latch = new CountDownLatch(1);
-
-		MongoDB.mongoClientSingleton.remove(MongoDB.COLLECTION_ENTITIES, new JsonObject(), res -> {
-			if (res.succeeded()) {
-				latch.countDown();
-			}
-		});
-
-		latch.await();
+//		final CountDownLatch latch = new CountDownLatch(1);
+//
+//		MongoDB.mongoClientSingleton.remove(MongoDB.COLLECTION_ENTITIES, new JsonObject(), res -> {
+//			if (res.succeeded()) {
+//				latch.countDown();
+//			}
+//		});
+//
+//		latch.await();
 		vertx.close();
 	}
 
@@ -102,24 +109,32 @@ public class GroupSetOperationTest
 	{
 		final CountDownLatch latch = new CountDownLatch(5);
 
-		final List<String> elemList0 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(2));
-		final List<String> elemList1 = Arrays.asList(GROUP_LIST.get(0));
-		final List<String> elemList2 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1));
-		final List<String> elemList3 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1), GROUP_LIST.get(2));
-		final List<String> elemList4 = Arrays.asList(GROUP_LIST.get(1));
-
 		if (!isElemSettingDone) {
+
+			final List<? super String> elemList0 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(2));
+			final List<? super String> elemList1 = Arrays.asList(GROUP_LIST.get(0));
+			final List<? super String> elemList2 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1));
+			final List<? super String> elemList3 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1), GROUP_LIST.get(2));
+			final List<? super String> elemList4 = Arrays.asList(GROUP_LIST.get(1));
+
 			try {
 				final TestGroupElementMaker elem0 = new TestGroupElementMaker(latch, elemList0);
-				final TestGroupElementMaker elem1 = new TestGroupElementMaker(latch, elemList1);
-				final TestGroupElementMaker elem2 = new TestGroupElementMaker(latch, elemList2);
-				final TestGroupElementMaker elem3 = new TestGroupElementMaker(latch, elemList3);
-				final TestGroupElementMaker elem4 = new TestGroupElementMaker(latch, elemList4);
-
 				new Thread(elem0).start();
+				Thread.sleep(500);
+
+				final TestGroupElementMaker elem1 = new TestGroupElementMaker(latch, elemList1);
 				new Thread(elem1).start();
+				Thread.sleep(500);
+
+				final TestGroupElementMaker elem2 = new TestGroupElementMaker(latch, elemList2);
 				new Thread(elem2).start();
+				Thread.sleep(500);
+
+				final TestGroupElementMaker elem3 = new TestGroupElementMaker(latch, elemList3);
 				new Thread(elem3).start();
+				Thread.sleep(500);
+
+				final TestGroupElementMaker elem4 = new TestGroupElementMaker(latch, elemList4);
 				new Thread(elem4).start();
 
 				latch.await();
@@ -139,7 +154,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.union(TestConstants.VALUE_APP_ID, GROUP_LIST.get(0), GROUP_LIST.get(1),
+		GroupSetOperation.union(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                        (errorCode, result) -> {
 			                        errorCodePassed[0] = errorCode;
 			                        resultInSetPassed.addAll(result);
@@ -170,7 +185,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.intersection(TestConstants.VALUE_APP_ID, GROUP_LIST.get(0), GROUP_LIST.get(1),
+		GroupSetOperation.intersection(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                               (errorCode, result) -> {
 			                               errorCodePassed[0] = errorCode;
 			                               resultInSetPassed.addAll(result);
@@ -191,7 +206,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, GROUP_LIST.get(1), GROUP_LIST.get(2),
+		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(1)), String.valueOf(GROUP_LIST.get(2)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -213,7 +228,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, GROUP_LIST.get(2), GROUP_LIST.get(1),
+		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(1)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -235,7 +250,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, GROUP_LIST.get(0), GROUP_LIST.get(2),
+		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(2)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;
@@ -257,7 +272,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, GROUP_LIST.get(2), GROUP_LIST.get(0),
+		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(0)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;
@@ -312,9 +327,9 @@ public class GroupSetOperationTest
 		                                                  .put(Entity.FIELD_CREATED_AT, createdAt)
 		                                                  .put(Entity.FIELD_UPDATED_AT, createdAt);
 		private CountDownLatch latch = null;
-		private List<String> groupList = new ArrayList<>();
+		private List<Object> groupList = new ArrayList<>();
 
-		TestGroupElementMaker(final CountDownLatch latch, final List<String> groupList)
+		TestGroupElementMaker(final CountDownLatch latch, final List<? super String> groupList)
 		{
 			this.latch = latch;
 			this.groupList.addAll(groupList);

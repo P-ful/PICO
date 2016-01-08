@@ -8,6 +8,7 @@ import com.pful.pico.db.MongoDB;
 import com.pful.pico.db.querybuilder.Finder;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -131,16 +132,27 @@ public class GroupSetOperation
 		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
 		              "appId and groups shouldn't be null or empty.");
 
+		System.out.println(group1);
+		System.out.println(group2);
+
 		getElements(appId, group1,
-		            set1 -> {
+		            entitiesInGroup1 -> {
 			            getElements(appId, group2,
-			                        set2 -> {
-				                        if (set1 == null || set2 == null) {
+			                        entitiesInGroup2 -> {
+				                        if (entitiesInGroup1 == null || entitiesInGroup2 == null) {
 					                        callback.manipulated(PICOErrorCode.BadRequest, false);
 					                        return;
 				                        }
 
-				                        callback.manipulated(PICOErrorCode.Success, set1.containsAll(set2));
+				                        // because of comparing entity-objects itself, containsAll returns "false".
+				                        final Gson gson = new Gson();
+				                        final Collection<String> groupSet1 = new HashSet<>();
+				                        final Collection<String> groupSet2 = new HashSet<>();
+
+				                        entitiesInGroup1.stream().forEach(e -> groupSet1.add(gson.toJson(e)));
+				                        entitiesInGroup2.stream().forEach(e -> groupSet2.add(gson.toJson(e)));
+
+				                        callback.manipulated(PICOErrorCode.Success, groupSet1.containsAll(groupSet2));
 			                        });
 		            });
 	}
@@ -170,15 +182,15 @@ public class GroupSetOperation
 				                         return;
 			                         }
 
-			                         final Set<Entity> elemsInSet = new HashSet<>();
+			                         final Collection<Entity> elemsInCollection = new HashSet<>();
 
 			                         final Gson gson = new Gson();
 
 			                         res.result()
 			                            .stream()
-			                            .forEach(e -> elemsInSet.add(gson.fromJson(e.toString(), Entity.class)));
+			                            .forEach(e -> elemsInCollection.add(gson.fromJson(e.toString(), Entity.class)));
 
-			                         callback.listed(elemsInSet);
+			                         callback.listed(elemsInCollection);
 		                         });
 	}
 

@@ -3,6 +3,7 @@ package com.pful.pico.resource;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.pful.pico.Service;
+import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
 import com.pful.pico.db.querybuilder.Finder;
@@ -23,23 +24,25 @@ public class GroupSetOperation
 //	private static final String QUERY_GETTING_TWO_GROUPS = "QUERY_GETTING_TWO_GROUPS";
 
 	/**
-	 * @param appId    application id
+	 * @param context
 	 * @param group1   group id referencing an entity
 	 * @param group2   group id referencing an entity
 	 * @param callback
 	 */
-	public static void union(final String appId,
+	public static void union(final ApplicationContext context,
 	                         final String group1,
 	                         final String group2,
 	                         final GroupSetOperationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
 		              "appId and groups shouldn't be null or empty.");
 
 //		Query -> { 'app_id' : <#app_id>, $or : [ { 'groups' : <#group_1> }, { 'groups' : <#group_2> }}]}
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .anyOf(field(GroupManipulation.FIELD_GROUPS).is(group1),
 		                                      field(GroupManipulation.FIELD_GROUPS).is(group2))
 		                               .toJson();
@@ -70,23 +73,25 @@ public class GroupSetOperation
 	}
 
 	/**
-	 * @param appId    application id
+	 * @param context
 	 * @param group1   group id referencing an entity
 	 * @param group2   group id referencing an entity
 	 * @param callback
 	 */
-	public static void intersection(final String appId,
+	public static void intersection(final ApplicationContext context,
 	                                final String group1,
 	                                final String group2,
 	                                final GroupSetOperationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
 		              "appId and groups shouldn't be null or empty.");
 
 //		Query -> { 'app_id' : <#app_id>, 'groups' : { $all : [ <#group_1>, <#group_2> ]}}
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .field(GroupManipulation.FIELD_GROUPS).allInStrings(group1, group2)
 		                               .toJson();
 
@@ -94,23 +99,25 @@ public class GroupSetOperation
 	}
 
 	/**
-	 * @param appId    application id
+	 * @param context
 	 * @param group1   group id referencing an entity
 	 * @param group2   group id referencing an entity
 	 * @param callback
 	 */
-	public static void difference(final String appId,
+	public static void difference(final ApplicationContext context,
 	                              final String group1,
 	                              final String group2,
 	                              final GroupSetOperationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
-		              "appId and groups shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		              "groups shouldn't be null or empty.");
 
 		// Query -> { '$and' : [ { 'groups' : <#group1> } , { 'groups' : { $ne : <#groups2> }}]}
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .allOf(field(GroupManipulation.FIELD_GROUPS).is(group1),
 		                                      field(GroupManipulation.FIELD_GROUPS).ne(group2))
 		                               .toJson();
@@ -119,25 +126,24 @@ public class GroupSetOperation
 	}
 
 	/**
-	 * @param appId    application id
+	 * @param context
 	 * @param group1   group id referencing an entity
 	 * @param group2   group id referencing an entity
 	 * @param callback
 	 */
-	public static void subset(final String appId,
+	public static void subset(final ApplicationContext context,
 	                          final String group1,
 	                          final String group2,
 	                          final GroupLogicalSetOperationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
-		              "appId and groups shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group1) && !Strings.isNullOrEmpty(group2),
+		              "groups shouldn't be null or empty.");
 
-		System.out.println(group1);
-		System.out.println(group2);
-
-		getElements(appId, group1,
+		getElements(context, group1,
 		            entitiesInGroup1 -> {
-			            getElements(appId, group2,
+			            getElements(context, group2,
 			                        entitiesInGroup2 -> {
 				                        if (entitiesInGroup1 == null || entitiesInGroup2 == null) {
 					                        callback.manipulated(PICOErrorCode.BadRequest, false);
@@ -158,16 +164,17 @@ public class GroupSetOperation
 	}
 
 	/**
-	 * @param appId application id
+	 * @param context
 	 * @param group group id referencing an entity
 	 * @return
 	 */
-	private static void getElements(final String appId,
+	// TODO : extract this as a general function for getting Entities in a specfic group
+	private static void getElements(final ApplicationContext context,
 	                                final String group,
 	                                final GroupElementListCallback callback)
 	{
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .field(GroupManipulation.FIELD_GROUPS).inStrings(group)
 		                               .toJson();
 

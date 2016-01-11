@@ -1,6 +1,7 @@
 package com.pful.pico.resource;
 
 import com.pful.pico.Service;
+import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
 import io.vertx.core.Vertx;
@@ -41,6 +42,8 @@ import static org.hamcrest.core.Is.is;
 public class GroupSetOperationTest
 {
 	private static boolean isElemSettingDone;
+	private static ApplicationContext context =
+			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 	private static Vertx vertx = Vertx.vertx();
 
 	private static List<? super String> GROUP_LIST = new ArrayList<>();
@@ -154,7 +157,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.union(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.union(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                        (errorCode, result) -> {
 			                        errorCodePassed[0] = errorCode;
 			                        resultInSetPassed.addAll(result);
@@ -185,7 +188,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.intersection(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.intersection(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                               (errorCode, result) -> {
 			                               errorCodePassed[0] = errorCode;
 			                               resultInSetPassed.addAll(result);
@@ -206,7 +209,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(1)), String.valueOf(GROUP_LIST.get(2)),
+		GroupSetOperation.difference(context, String.valueOf(GROUP_LIST.get(1)), String.valueOf(GROUP_LIST.get(2)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -228,7 +231,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.difference(context, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(1)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -250,7 +253,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(2)),
+		GroupSetOperation.subset(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(2)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;
@@ -272,7 +275,7 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(TestConstants.VALUE_APP_ID, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(0)),
+		GroupSetOperation.subset(context, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(0)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;

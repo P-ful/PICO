@@ -1,6 +1,7 @@
 package com.pful.pico.resource;
 
 import com.pful.pico.Service;
+import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
 import io.vertx.core.Vertx;
@@ -27,6 +28,8 @@ public class GroupManipulationTest
 	private static String entityIdBeforeClass;
 	private static List<String> entityIdsInBeforeMethod = new ArrayList<>();
 	private static String targetEntityIdForCreateTest;
+	private static ApplicationContext context =
+			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 	private static Vertx vertx = Vertx.vertx();
 
 	/**
@@ -164,7 +167,7 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 
-		GroupManipulation.create(TestConstants.VALUE_APP_ID, targetEntityIdForCreateTest, entityIdBeforeClass,
+		GroupManipulation.create(context, targetEntityIdForCreateTest, entityIdBeforeClass,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -192,7 +195,7 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = { new JsonObject() };
 
-		GroupManipulation.read(TestConstants.VALUE_APP_ID,
+		GroupManipulation.read(context,
 		                       (errorCode, result) -> {
 			                       errorCodePassed[0] = errorCode;
 			                       resultPassed[0] = result;
@@ -233,8 +236,8 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 
-		GroupManipulation.readElems(TestConstants.VALUE_APP_ID, entityIdBeforeClass,
-		                            (errorCode, result) -> {
+		GroupManipulation.readEntities(context, entityIdBeforeClass,
+		                               (errorCode, result) -> {
 			                            errorCodePassed[0] = errorCode;
 			                            resultPassed[0] = result;
 
@@ -265,7 +268,7 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 
-		GroupManipulation.read(TestConstants.VALUE_APP_ID, entityIdBeforeClass,
+		GroupManipulation.read(context, entityIdBeforeClass,
 		                       (errorCode, result) -> {
 			                       errorCodePassed[0] = errorCode;
 			                       resultPassed[0] = result;
@@ -295,7 +298,7 @@ public class GroupManipulationTest
 		final JsonObject[] resultPassed = new JsonObject[1];
 
 //		System.out.println(entityIdsInBeforeMethod.get(4));
-		GroupManipulation.read(TestConstants.VALUE_APP_ID, entityIdsInBeforeMethod.get(4),
+		GroupManipulation.read(context, entityIdsInBeforeMethod.get(4),
 		                       (errorCode, result) -> {
 			                       errorCodePassed[0] = errorCode;
 			                       resultPassed[0] = result;
@@ -332,7 +335,7 @@ public class GroupManipulationTest
 		System.out.println("original: " + entityIdBeforeClass);
 		System.out.println("new: " + newGroup);
 
-		GroupManipulation.update(TestConstants.VALUE_APP_ID, entityIdBeforeClass, newGroup,
+		GroupManipulation.update(context, entityIdBeforeClass, newGroup,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -363,7 +366,7 @@ public class GroupManipulationTest
 		final JsonObject[] resultPassed = new JsonObject[1];
 		final String targetEntityId = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
 
-		GroupManipulation.update(TestConstants.VALUE_APP_ID, targetEntityId, entityIdBeforeClass, targetEntityIdForCreateTest,
+		GroupManipulation.update(context, targetEntityId, entityIdBeforeClass, targetEntityIdForCreateTest,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -398,7 +401,7 @@ public class GroupManipulationTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
-		GroupManipulation.delete(TestConstants.VALUE_APP_ID, entityIdBeforeClass,
+		GroupManipulation.delete(context, entityIdBeforeClass,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -429,7 +432,7 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 		final String targetEntityId = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
-		GroupManipulation.delete(TestConstants.VALUE_APP_ID, targetEntityId, entityIdBeforeClass,
+		GroupManipulation.delete(context, targetEntityId, entityIdBeforeClass,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;

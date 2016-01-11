@@ -2,6 +2,7 @@ package com.pful.pico.resource;
 
 import com.google.common.base.Strings;
 import com.pful.pico.Service;
+import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.core.PICOException;
 import com.pful.pico.db.MongoDB;
@@ -39,24 +40,26 @@ public class GroupManipulation
 	/**
 	 * Create a group in the specified entity
 	 *
-	 * @param appId    An application-id
+	 * @param context  A context
 	 * @param entityId An entity-id
 	 * @param group    A group that will be inserted in the list of the groups field
 	 * @param callback
 	 * @throws PICOException
 	 */
-	public static void create(final String appId,
+	public static void create(final ApplicationContext context,
 	                          final String entityId,
 	                          final String group,
 	                          final GroupManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId) && !Strings.isNullOrEmpty(group),
-		              "appId, entityId, and group shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(entityId) && !Strings.isNullOrEmpty(group),
+		              "entityId, and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject condition = Finder.newQuery()
-		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                                   .field(Entity.FIELD_ID).is(entityId)
 		                                   .field(FIELD_GROUPS).ninStrings(group)
 		                                   .toJson();
@@ -100,20 +103,21 @@ public class GroupManipulation
 	/**
 	 * Get all the groups contained in the specified application-id
 	 *
-	 * @param appId    An application-id
+	 * @param context    An application-id
 	 * @param callback
 	 * @throws PICOException
 	 */
-	public static void read(final String appId,
+	public static void read(final ApplicationContext context,
 	                        final GroupManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId), "appId shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 //		final JsonObject query = new JsonObject().put(Entity.FIELD_APP_ID, appId);
 
-		final JsonObject query = Finder.newQuery().field(Entity.FIELD_APP_ID).is(appId).toJson();
+		final JsonObject query = Finder.newQuery().field(Entity.FIELD_APP_ID).is(context.getAppId()).toJson();
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES, query,
 		                         res -> {
@@ -146,22 +150,24 @@ public class GroupManipulation
 	/**
 	 * Get all the groups in the specified entity
 	 *
-	 * @param appId    An application-id
+	 * @param context  An application-id
 	 * @param entityId An entity-id
 	 * @param callback
 	 * @throws PICOException
 	 */
-	public static void read(final String appId,
+	public static void read(final ApplicationContext context,
 	                        final String entityId,
 	                        final GroupManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
-		              "appId and entityId shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(entityId),
+		              "entityId shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .field(Entity.FIELD_ID).is(entityId)
 		                               .field(FIELD_GROUPS).exists()
 		                               .toJson();
@@ -194,23 +200,25 @@ public class GroupManipulation
 	/**
 	 * Get all the entities included in the specified group of the application-id
 	 *
-	 * @param appId    An application-id
+	 * @param context
 	 * @param group    A group name
 	 * @param callback
 	 * @throws PICOException
 	 */
 	// TODO method name
-	public static void readElems(final String appId,
-	                             final String group,
-	                             final GroupManipulationCallback callback)
+	public static void readEntities(final ApplicationContext context,
+	                                final String group,
+	                                final GroupManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group),
-		              "appId and group shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group),
+		              "group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(Entity.FIELD_APP_ID).is(appId)
+		                               .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                               .field(FIELD_GROUPS).inStrings(group)
 		                               .toJson();
 
@@ -238,22 +246,24 @@ public class GroupManipulation
 	/**
 	 * replace the current group with the new group through the specified the application
 	 *
-	 * @param appId
+	 * @param context
 	 * @param originalGroup
 	 * @param newGroup
 	 * @param callback
 	 */
-	public static void update(final String appId,
+	public static void update(final ApplicationContext context,
 	                          final String originalGroup,
 	                          final String newGroup,
 	                          final GroupManipulationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(originalGroup) && !Strings.isNullOrEmpty(newGroup),
-		              "appId and groups shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(originalGroup) && !Strings.isNullOrEmpty(newGroup),
+		              "groups shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject condition = Finder.newQuery()
-		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                                   .field(FIELD_GROUPS).is(originalGroup)
 		                                   .toJson();
 
@@ -294,26 +304,27 @@ public class GroupManipulation
 	/**
 	 * replace the current group with the new group in the specified entity.
 	 *
-	 * @param appId
+	 * @param context
 	 * @param entityId
 	 * @param originalGroup
 	 * @param newGroup
 	 * @param callback
 	 */
-	public static void update(final String appId,
+	public static void update(final ApplicationContext context,
 	                          final String entityId,
 	                          final String originalGroup,
 	                          final String newGroup,
 	                          final GroupManipulationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId)
-				              && !Strings.isNullOrEmpty(originalGroup) && !Strings.isNullOrEmpty(
-				newGroup),
-		              "appId, entityId, and groups shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(entityId) && !Strings.isNullOrEmpty(originalGroup)
+				              && !Strings.isNullOrEmpty(newGroup),
+		              "entityId and groups shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject condition = Finder.newQuery()
-		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                                   .field(Entity.FIELD_ID).is(entityId)
 		                                   .field(FIELD_GROUPS).inStrings(originalGroup)
 		                                   .toJson();
@@ -361,20 +372,22 @@ public class GroupManipulation
 	/**
 	 * delete the specified group in the application
 	 *
-	 * @param appId
+	 * @param context
 	 * @param group
 	 * @param callback
 	 */
-	public static void delete(final String appId,
+	public static void delete(final ApplicationContext context,
 	                          final String group,
 	                          final GroupManipulationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(group),
-		              "appId and group shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(group),
+		              "group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject condition = Finder.newQuery()
-		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                                   .field(FIELD_GROUPS).inStrings(group)
 		                                   .toJson();
 
@@ -412,22 +425,24 @@ public class GroupManipulation
 	/**
 	 * delete the specified group in the entity
 	 *
-	 * @param appId
+	 * @param context
 	 * @param entityId
 	 * @param group
 	 * @param callback
 	 */
-	public static void delete(final String appId,
+	public static void delete(final ApplicationContext context,
 	                          final String entityId,
 	                          final String group,
 	                          final GroupManipulationCallback callback)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId) && !Strings.isNullOrEmpty(group),
-		              "appId, entityId, and group shouldn't be null or empty.");
+		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()),
+		              "context shouldn't be null and valid.");
+		checkArgument(!Strings.isNullOrEmpty(entityId) && !Strings.isNullOrEmpty(group),
+		              "entityId and group shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final JsonObject condition = Finder.newQuery()
-		                                   .field(Entity.FIELD_APP_ID).is(appId)
+		                                   .field(Entity.FIELD_APP_ID).is(context.getAppId())
 		                                   .field(Entity.FIELD_ID).is(entityId)
 		                                   .toJson();
 

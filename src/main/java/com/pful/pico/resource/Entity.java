@@ -4,7 +4,6 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.pful.pico.Service;
-import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.core.PICOException;
 import com.pful.pico.db.MongoDB;
@@ -25,7 +24,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class Entity
 {
-	public static final String FIELD_APP_ID = "app_id";
+	//	public static final String FIELD_APP_ID = "app_id";
 	public static final String FIELD_ID = "_id";
 	public static final String FIELD_TYPE = "type";
 	public static final String FIELD_PROPERTIES = "properties";
@@ -35,8 +34,8 @@ public class Entity
 	/**
 	 * appId is an identifier to recognize which an application have the entity.
 	 */
-	@SerializedName(FIELD_APP_ID)
-	private String appId;
+//	@SerializedName(FIELD_APP_ID)
+//	private String appId;
 
 	/**
 	 * id is an unique identifier.
@@ -91,15 +90,17 @@ public class Entity
 	/**
 	 * A constructor that is used for bind() method.
 	 *
-	 * @param appId    An application-id
+	 //	 * @param appId    An application-id
 	 * @param entityId An entity-id
 	 */
-	private Entity(final String appId, final String entityId)
+	private Entity(//final String appId,
+	               final String entityId)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
-		              "appId and entityId shouldn't be null or empty.");
+//		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
+//		              "appId and entityId shouldn't be null or empty.");
+		checkArgument(!Strings.isNullOrEmpty(entityId), "entityId shouldn't be null or empty.");
 
-		this.appId = appId;
+//		this.appId = appId;
 		this.id = entityId;
 		this.dirty = true;
 	}
@@ -107,17 +108,21 @@ public class Entity
 	/**
 	 * A constructor that is used for create() method.
 	 *
-	 * @param appId      An application-id
+	 //	 * @param appId      An application-id
 	 * @param entityId   An entity-id
 	 * @param type       A type of an entity
 	 * @param properties Properties of an entity
 	 */
-	private Entity(final String appId, final String entityId, final String type, final Map<String, Object> properties)
+	private Entity(//final String appId,
+	               final String entityId,
+	               final String type, final
+	               Map<String, Object> properties)
 	{
-		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
-		              "appId and type shouldn't be null or empty.");
+//		checkArgument(!Strings.isNullOrEmpty(appId) && !Strings.isNullOrEmpty(entityId),
+//		              "appId and type shouldn't be null or empty.");
+		checkArgument(!Strings.isNullOrEmpty(entityId), "entityId shouldn't be null or empty.");
 
-		this.appId = appId;
+//		this.appId = appId;
 		this.id = entityId;
 		this.type = type;
 		this.properties = properties;
@@ -128,82 +133,94 @@ public class Entity
 	 * bind make an entity instance depending on the parameters 'appId' and 'entityId'.
 	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
 	 *
-	 * @param appId    An application-id
+	 //	 * @param appId    An application-id
 	 * @param entityId An entity-id
 	 * @return A entity bound with the parameters 'appId' and 'entityId'
 	 */
-	public static Entity bind(final String appId, final String entityId)
+	public static Entity bind(//final String appId,
+	                          final String entityId)
 	{
-		return new Entity(appId, entityId, null, null);
+		return new Entity(//appId,
+		                  entityId, null, null);
 	}
 
 	/**
 	 * bind make an entity instance depending on the parameters 'appId', 'entityId', and 'properties'.
 	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
 	 *
-	 * @param appId    An application-id
+	 //	 * @param appId    An application-id
 	 * @param entityId An entity-id
 	 * @param type     An entity type in any string.
 	 * @return
 	 */
-	public static Entity bind(final String appId, final String entityId, final String type)
+	public static Entity bind(//final String appId,
+	                          final String entityId,
+	                          final String type)
 	{
-		return new Entity(appId, entityId, type, null);
+		return new Entity(//appId,
+		                  entityId, type, null);
 	}
 
 	/**
 	 * bind make an entity instance depending on the parameters 'appId', 'entityId', and 'properties'.
 	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
 	 *
-	 * @param appId      An application-id
+	 //	 * @param appId      An application-id
 	 * @param entityId   An entity-id
 	 * @param properties The properties of the entity.
 	 * @return
 	 */
-	public static Entity bind(final String appId, final String entityId, final Map<String, Object> properties)
+	public static Entity bind(//final String appId,
+	                          final String entityId,
+	                          final Map<String, Object> properties)
 	{
-		return new Entity(appId, entityId, null, properties);
+		return new Entity(//appId,
+		                  entityId, null, properties);
 	}
 
 	/**
 	 * bind make an entity instance depending on the parameters 'appId', 'entityId', 'type', and 'properties'.
 	 * But the bound entity have only appId and entityId so that it must be synchronized from the database.
 	 *
-	 * @param appId      An application-id
+	 //	 * @param appId      An application-id
 	 * @param entityId   An entity-id
 	 * @param type       An entity type in any string.
 	 * @param properties The properties of the entity.
 	 * @return
 	 */
-	public static Entity bind(final String appId, final String entityId, final String type, final Map<String, Object> properties)
+	public static Entity bind(//final String appId,
+	                          final String entityId,
+	                          final String type,
+	                          final Map<String, Object> properties)
 	{
-		return new Entity(appId, entityId, type, properties);
+		return new Entity(//appId,
+		                  entityId, type, properties);
 	}
 
 	/**
 	 * Create an entity
 	 *
-	 * @param context    context contains the application-specific information such as an application identifier and token.
+	 //	 * @param context    context contains the application-specific information such as an application identifier and token.
 	 * @param type       An entity type in any string.
 	 * @param properties The properties of the entity or null. If it is null, it means the entity has no properties.
 	 * @param callback   callback is an object that is called when the request has been completed. If the entity is created, PICO calls with a newly created entity instance as a second parameter, or will be null.
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	public static void create(final ApplicationContext context,
+	public static void create(//final ApplicationContext context,
 	                          final String type,
 	                          final Map<String, Object> properties,
 	                          final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+//		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
 		checkArgument(!Strings.isNullOrEmpty(type), "type shouldn't be null and empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
 		final long createdAt = Instant.now().getEpochSecond();
 		final Entity entity = new Entity();
 
-		entity.appId = context.getAppId();
+//		entity.appId = context.getAppId();
 		entity.type = type;
 		entity.properties = properties;
 
@@ -230,16 +247,18 @@ public class Entity
 	/**
 	 * Get an entity
 	 *
-	 * @param context  context contains the application-specific information such as an application identifier and token.
+	 //	 * @param context  context contains the application-specific information such as an application identifier and token.
 	 * @param id       an unique identifier for an entity
 	 * @param callback callback is an object that be called when the request has been completed. If there is an entity related to the parameter 'id', PICO calls with the entity instance, or will be null.
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	public static void read(final ApplicationContext context, final String id, final EntityManipulationCallback callback)
+	public static void read(//final ApplicationContext context,
+	                        final String id,
+	                        final EntityManipulationCallback callback)
 			throws PICOException
 	{
-		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+//		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
 		checkArgument(!Strings.isNullOrEmpty(id), "id shouldn't be null or empty.");
 		checkArgument(callback != null, "callback shouldn't be null.");
 
@@ -247,9 +266,9 @@ public class Entity
 //		                                         .put(FIELD_ID, id);
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(FIELD_APP_ID).is(context.getAppId())
-		                               .field(FIELD_ID).is(id)
-		                               .toJson();
+//		                               .field(FIELD_APP_ID).is(context.getAppId())
+                                       .field(FIELD_ID).is(id)
+                                       .toJson();
 
 		Service.mongoClient.find(MongoDB.COLLECTION_ENTITIES,
 		                         query,
@@ -272,8 +291,9 @@ public class Entity
 
 	/**
 	 * List entities
+	 * <p>
+	 * // * @param context  context contains the application-specific information such as an application identifier and token.
 	 *
-	 * @param context  context contains the application-specific information such as an application identifier and token.
 	 * @param type     an entity type in any string.
 	 * @param offset   A first position in the database of the list
 	 * @param limit    An maximum number of entities that should be included into the list
@@ -281,14 +301,14 @@ public class Entity
 	 * @throws PICOException
 	 * @throws RuntimeException
 	 */
-	public static void list(final ApplicationContext context,
+	public static void list(//final ApplicationContext context,
 	                        final String type,
 	                        final int offset,
 	                        final int limit,
 	                        final EntityListCallback callback)
 			throws PICOException
 	{
-		checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
+		//checkArgument(context != null && !Strings.isNullOrEmpty(context.getAppId()), "context shouldn't be null and valid.");
 		checkArgument(!Strings.isNullOrEmpty(type), "type shouldn't be null and empty.");
 		checkArgument(offset >= 0, "offset should greater than equal to zero.");
 		checkArgument(limit > 0, "offset should greater than zero.");
@@ -298,9 +318,9 @@ public class Entity
 //		                                         .put(FIELD_TYPE, type);
 
 		final JsonObject query = Finder.newQuery()
-		                               .field(FIELD_APP_ID).is(context.getAppId())
-		                               .field(FIELD_TYPE).is(type)
-		                               .toJson();
+//		                               .field(FIELD_APP_ID).is(context.getAppId())
+                                       .field(FIELD_TYPE).is(type)
+                                       .toJson();
 
 		final FindOptions option = new FindOptions().setSkip(offset)
 		                                            .setLimit(limit);
@@ -371,9 +391,9 @@ public class Entity
 //		return new JsonObject().put(FIELD_APP_ID, appId)
 //		                       .put(FIELD_ID, id);
 		return Finder.newQuery()
-		             .field(FIELD_APP_ID).is(appId)
-		             .field(FIELD_ID).is(id)
-		             .toJson();
+//		             .field(FIELD_APP_ID).is(appId)
+                     .field(FIELD_ID).is(id)
+                     .toJson();
 	}
 
 	/**
@@ -415,10 +435,10 @@ public class Entity
 		return updatedAt;
 	}
 
-	public String getAppId()
+	/*public String getAppId()
 	{
 		return appId;
-	}
+	}*/
 
 	public String getType()
 	{

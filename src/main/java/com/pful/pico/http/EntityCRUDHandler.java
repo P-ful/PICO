@@ -91,7 +91,7 @@ public class EntityCRUDHandler
 	private static void create(final RoutingContext routingContext)
 			throws PICOException
 	{
-		Entity.create(ApplicationContext.defaultContext(routingContext),
+		Entity.create(//ApplicationContext.defaultContext(routingContext),
 		              routingContext.request().getParam(PARAM_TYPE),
 		              routingContext.getBodyAsJson().getMap(),
 		              new EntityManipulationCallbackWrapper(routingContext.response())
@@ -118,7 +118,7 @@ public class EntityCRUDHandler
 	private static void read(final RoutingContext routingContext)
 			throws PICOException
 	{
-		Entity.read(ApplicationContext.defaultContext(routingContext),
+		Entity.read(//	ApplicationContext.defaultContext(routingContext),
 		            routingContext.request().getParam(PARAM_ENTITY_ID),
 		            new EntityManipulationCallbackWrapper(routingContext.response())
 		            {
@@ -275,13 +275,14 @@ public class EntityCRUDHandler
 	public static void list(RoutingContext routingContext)
 			throws PICOException
 	{
-		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
+//		final ApplicationContext appContext = ApplicationContext.defaultContext(routingContext);
 
 		final String type = routingContext.request().getParam(PARAM_TYPE);
 		final int offset = Integer.parseInt(routingContext.request().getParam(PARAM_OFFSET));
 		final int limit = Integer.parseInt(routingContext.request().getParam(PARAM_LIMIT));
 
-		Entity.list(appContext, type, offset, limit,
+		Entity.list(//appContext,
+		            type, offset, limit,
 		            (errorCode, typePassed, entityList) -> {
 			            if (errorCode != PICOErrorCode.Success) {
 				            respondForError(routingContext.response(), 500, errorCode);

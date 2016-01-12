@@ -1,7 +1,6 @@
 package com.pful.pico.resource;
 
 import com.pful.pico.Service;
-import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
 import io.vertx.core.Vertx;
@@ -10,10 +9,7 @@ import org.junit.*;
 import org.junit.runners.MethodSorters;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.core.Is.is;
@@ -42,8 +38,8 @@ import static org.hamcrest.core.Is.is;
 public class GroupSetOperationTest
 {
 	private static boolean isElemSettingDone;
-	private static ApplicationContext context =
-			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
+	//	private static ApplicationContext context =
+//			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 	private static Vertx vertx = Vertx.vertx();
 
 	private static List<? super String> GROUP_LIST = new ArrayList<>();
@@ -115,10 +111,10 @@ public class GroupSetOperationTest
 		if (!isElemSettingDone) {
 
 			final List<? super String> elemList0 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(2));
-			final List<? super String> elemList1 = Arrays.asList(GROUP_LIST.get(0));
+			final List<? super String> elemList1 = Collections.singletonList(GROUP_LIST.get(0));
 			final List<? super String> elemList2 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1));
 			final List<? super String> elemList3 = Arrays.asList(GROUP_LIST.get(0), GROUP_LIST.get(1), GROUP_LIST.get(2));
-			final List<? super String> elemList4 = Arrays.asList(GROUP_LIST.get(1));
+			final List<? super String> elemList4 = Collections.singletonList(GROUP_LIST.get(1));
 
 			try {
 				final TestGroupElementMaker elem0 = new TestGroupElementMaker(latch, elemList0);
@@ -157,7 +153,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.union(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.union(//context,
+		                        String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                        (errorCode, result) -> {
 			                        errorCodePassed[0] = errorCode;
 			                        resultInSetPassed.addAll(result);
@@ -188,7 +185,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.intersection(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.intersection(//context,
+		                               String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(1)),
 		                               (errorCode, result) -> {
 			                               errorCodePassed[0] = errorCode;
 			                               resultInSetPassed.addAll(result);
@@ -209,7 +207,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(context, String.valueOf(GROUP_LIST.get(1)), String.valueOf(GROUP_LIST.get(2)),
+		GroupSetOperation.difference(//context,
+		                             String.valueOf(GROUP_LIST.get(1)), String.valueOf(GROUP_LIST.get(2)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -231,7 +230,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final Collection<Entity> resultInSetPassed = new ArrayList<>();
 
-		GroupSetOperation.difference(context, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(1)),
+		GroupSetOperation.difference(//context,
+		                             String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(1)),
 		                             (errorCode, result) -> {
 			                             errorCodePassed[0] = errorCode;
 			                             resultInSetPassed.addAll(result);
@@ -253,7 +253,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(context, String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(2)),
+		GroupSetOperation.subset(//context,
+		                         String.valueOf(GROUP_LIST.get(0)), String.valueOf(GROUP_LIST.get(2)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;
@@ -275,7 +276,8 @@ public class GroupSetOperationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final boolean[] resultInBoolPassed = new boolean[1];
 
-		GroupSetOperation.subset(context, String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(0)),
+		GroupSetOperation.subset(//context,
+		                         String.valueOf(GROUP_LIST.get(2)), String.valueOf(GROUP_LIST.get(0)),
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultInBoolPassed[0] = result;
@@ -293,7 +295,7 @@ public class GroupSetOperationTest
 	{
 		private final long createdAt = Instant.now()
 		                                      .getEpochSecond();
-		private final JsonObject entity = new JsonObject().put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
+		private final JsonObject entity = new JsonObject()//.put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
 		                                                  .put(Entity.FIELD_TYPE, TestConstants.VALUE_TYPE)
 		                                                  .put(Entity.FIELD_CREATED_AT, createdAt)
 		                                                  .put(Entity.FIELD_UPDATED_AT, createdAt);
@@ -325,7 +327,7 @@ public class GroupSetOperationTest
 	{
 		private final long createdAt = Instant.now()
 		                                      .getEpochSecond();
-		private final JsonObject entity = new JsonObject().put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
+		private final JsonObject entity = new JsonObject()//.put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
 		                                                  .put(Entity.FIELD_TYPE, TestConstants.VALUE_TYPE)
 		                                                  .put(Entity.FIELD_CREATED_AT, createdAt)
 		                                                  .put(Entity.FIELD_UPDATED_AT, createdAt);

@@ -5,7 +5,7 @@ package com.pful.pico.resource;
  */
 public interface TestConstants
 {
-	String VALUE_APP_ID = "test_app_id";
+	//	String VALUE_APP_ID = "test_app_id";
 	String VALUE_APP_TOKEN = "test_app_token";
 	String VALUE_TYPE = "test_type";
 }

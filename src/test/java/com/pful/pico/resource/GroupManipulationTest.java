@@ -1,7 +1,6 @@
 package com.pful.pico.resource;
 
 import com.pful.pico.Service;
-import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.db.MongoDB;
 import io.vertx.core.Vertx;
@@ -28,8 +27,8 @@ public class GroupManipulationTest
 	private static String entityIdBeforeClass;
 	private static List<String> entityIdsInBeforeMethod = new ArrayList<>();
 	private static String targetEntityIdForCreateTest;
-	private static ApplicationContext context =
-			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
+	//	private static ApplicationContext context =
+//			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 	private static Vertx vertx = Vertx.vertx();
 
 	/**
@@ -47,13 +46,13 @@ public class GroupManipulationTest
 
 		final long createdAt = Instant.now()
 		                              .getEpochSecond();
-		final JsonObject entity = new JsonObject().put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
+		final JsonObject entity = new JsonObject()//.put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
 		                                          .put(Entity.FIELD_TYPE, TestConstants.VALUE_TYPE)
 		                                          .put(Entity.FIELD_CREATED_AT, createdAt)
 		                                          .put(Entity.FIELD_UPDATED_AT, createdAt);
 
 		vertx.deployVerticle(Service.class.getName(), res -> {
-			if(res.failed()){
+			if (res.failed()) {
 				System.err.println(res.cause());
 				System.exit(1);
 			}
@@ -65,8 +64,7 @@ public class GroupManipulationTest
 
 				                                  final long newCreatedAt = Instant.now()
 				                                                                   .getEpochSecond();
-				                                  final JsonObject newEntity = new JsonObject().put(Entity.FIELD_APP_ID,
-				                                                                                    TestConstants.VALUE_APP_ID)
+				                                  final JsonObject newEntity = new JsonObject()//.put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
 				                                                                               .put(Entity.FIELD_TYPE,
 				                                                                                    TestConstants.VALUE_TYPE)
 				                                                                               .put(Entity.FIELD_CREATED_AT, newCreatedAt)
@@ -124,7 +122,7 @@ public class GroupManipulationTest
 		final CountDownLatch latch = new CountDownLatch(1);
 		final long createdAt = Instant.now()
 		                              .getEpochSecond();
-		final JsonObject entity = new JsonObject().put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
+		final JsonObject entity = new JsonObject()//.put(Entity.FIELD_APP_ID, TestConstants.VALUE_APP_ID)
 		                                          .put(Entity.FIELD_TYPE, TestConstants.VALUE_TYPE)
 		                                          .put(Entity.FIELD_CREATED_AT, createdAt)
 		                                          .put(Entity.FIELD_UPDATED_AT, createdAt)
@@ -167,7 +165,8 @@ public class GroupManipulationTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 
-		GroupManipulation.create(context, targetEntityIdForCreateTest, entityIdBeforeClass,
+		GroupManipulation.create(//context,
+		                         targetEntityIdForCreateTest, entityIdBeforeClass,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -182,31 +181,33 @@ public class GroupManipulationTest
 	}
 
 	/**
-	 * read all the list of the groups in the app.
-	 * it should return the json object result in the format of {groups: [id...]}.
+	 * read a group list in a single entity with no group.
+	 * it should return {groups : []}.
 	 *
 	 * @throws Exception
 	 */
 	@Test
-	public void test02getAllGroupsInApp()
+	public void test02readGroupsInSingleEntity()
 			throws Exception
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = { new JsonObject() };
+		final JsonObject[] resultPassed = new JsonObject[1];
 
-		GroupManipulation.read(context,
+		GroupManipulation.read(//context,
+		                       entityIdBeforeClass,
 		                       (errorCode, result) -> {
 			                       errorCodePassed[0] = errorCode;
 			                       resultPassed[0] = result;
 
 			                       latch.countDown();
 		                       });
+
 		latch.await();
 
-		List<String> groupList = getList(GroupManipulation.FIELD_GROUPS, resultPassed[0]);
+		List<String> groups = getList("groups", resultPassed[0]);
 		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertThat(groupList, hasItem(entityIdBeforeClass));
+		Assert.assertThat(groups.size(), is(0));
 	}
 
 	private List<String> getList(final String field, final JsonObject in)
@@ -223,142 +224,13 @@ public class GroupManipulationTest
 	}
 
 	/**
-	 * read all the list of the ids contained in a specified group.
-	 * it should return the json object result in the format of {elemsInGroup: [id...]}.
-	 *
-	 * @throws Exception
-	 */
-	@Test
-	public void test03readAllEntitiesContainedInAGroup()
-			throws Exception
-	{
-		final CountDownLatch latch = new CountDownLatch(1);
-		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = new JsonObject[1];
-
-		GroupManipulation.readEntities(context, entityIdBeforeClass,
-		                               (errorCode, result) -> {
-			                            errorCodePassed[0] = errorCode;
-			                            resultPassed[0] = result;
-
-			                            latch.countDown();
-		                            });
-
-		latch.await();
-
-		List<String> elemsInGroup = getList("elemsInGroup", resultPassed[0]);
-		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertThat(elemsInGroup, hasItem(entityIdsInBeforeMethod.get(0)));
-		Assert.assertThat(elemsInGroup, hasItem(entityIdsInBeforeMethod.get(1)));
-		Assert.assertThat(elemsInGroup, hasItem(entityIdsInBeforeMethod.get(2)));
-
-	}
-
-	/**
-	 * read a group list in a single entity with no group.
-	 * it should return {groups : []}.
-	 *
-	 * @throws Exception
-	 */
-	@Test
-	public void test05readGroupsInSingleEntity()
-			throws Exception
-	{
-		final CountDownLatch latch = new CountDownLatch(1);
-		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = new JsonObject[1];
-
-		GroupManipulation.read(context, entityIdBeforeClass,
-		                       (errorCode, result) -> {
-			                       errorCodePassed[0] = errorCode;
-			                       resultPassed[0] = result;
-
-			                       latch.countDown();
-		                       });
-
-		latch.await();
-
-		List<String> groups = getList("groups", resultPassed[0]);
-		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertThat(groups.size(), is(0));
-	}
-
-	/**
-	 * read a group list in a single entity which has one group.
-	 * it should return {groups: [id of entityIdBeforeClass]}
-	 *
-	 * @throws Exception
-	 */
-	@Test
-	public void test06readGroupsInSingleEntity()
-			throws Exception
-	{
-		final CountDownLatch latch = new CountDownLatch(1);
-		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = new JsonObject[1];
-
-//		System.out.println(entityIdsInBeforeMethod.get(4));
-		GroupManipulation.read(context, entityIdsInBeforeMethod.get(4),
-		                       (errorCode, result) -> {
-			                       errorCodePassed[0] = errorCode;
-			                       resultPassed[0] = result;
-
-			                       latch.countDown();
-		                       });
-
-		latch.await();
-
-		List<String> groups = getList("groups", resultPassed[0]);
-		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertThat(groups, hasItem(entityIdBeforeClass));
-		Assert.assertThat(groups.size(), is(1));
-	}
-
-	/**
-	 * update all entities that contains entityIdBeforeClass as a group
-	 * by replacing it with new id.
-	 * total 7 documents should be updated.
-	 * result format
-	 * {ok:1, nModified: int, n: int}
-	 *
-	 * @throws Exception
-	 */
-	@Test
-	public void test07updateGroup()
-			throws Exception
-	{
-		final CountDownLatch latch = new CountDownLatch(1);
-		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = new JsonObject[1];
-		final String newGroup = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
-
-		System.out.println("original: " + entityIdBeforeClass);
-		System.out.println("new: " + newGroup);
-
-		GroupManipulation.update(context, entityIdBeforeClass, newGroup,
-		                         (errorCode, result) -> {
-			                         errorCodePassed[0] = errorCode;
-			                         resultPassed[0] = result;
-
-			                         latch.countDown();
-		                         });
-
-		latch.await();
-
-		Assert.assertSame(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertNotNull(resultPassed[0]);
-		Assert.assertThat(resultPassed[0].getInteger("nModified"), is(7));
-		Assert.assertThat(resultPassed[0].getInteger("n"), is(7));
-	}
-
-	/**
 	 * update a specified entity's group
 	 * It returns the updated document.
 	 *
 	 * @throws Exception
 	 */
 	@Test
-	public void test08updateGroupInEntity()
+	public void test03updateGroupInEntity()
 			throws Exception
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -366,7 +238,8 @@ public class GroupManipulationTest
 		final JsonObject[] resultPassed = new JsonObject[1];
 		final String targetEntityId = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
 
-		GroupManipulation.update(context, targetEntityId, entityIdBeforeClass, targetEntityIdForCreateTest,
+		GroupManipulation.update(//context,
+		                         targetEntityId, entityIdBeforeClass, targetEntityIdForCreateTest,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -387,36 +260,6 @@ public class GroupManipulationTest
 	}
 
 	/**
-	 * delete a specified group through the application.
-	 * <p>
-	 * the result format
-	 * { ok: 1, nModified: int , n: int}
-	 *
-	 * @throws Exception
-	 */
-	@Test
-	public void test09deleteGroupInApp()
-			throws Exception
-	{
-		final CountDownLatch latch = new CountDownLatch(1);
-		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
-		final JsonObject[] resultPassed = new JsonObject[1];
-		GroupManipulation.delete(context, entityIdBeforeClass,
-		                         (errorCode, result) -> {
-			                         errorCodePassed[0] = errorCode;
-			                         resultPassed[0] = result;
-
-			                         latch.countDown();
-		                         });
-
-		latch.await();
-
-		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
-		Assert.assertThat(resultPassed[0].getInteger("nModified"), is(1));
-		Assert.assertThat(resultPassed[0].getInteger("n"), is(1));
-	}
-
-	/**
 	 * delete a group in an entity.
 	 * <p>
 	 * the result format
@@ -425,14 +268,15 @@ public class GroupManipulationTest
 	 * @throws Exception
 	 */
 	@Test
-	public void test10deleteGroupInAnEntity()
+	public void test4deleteGroupInAnEntity()
 			throws Exception
 	{
 		final CountDownLatch latch = new CountDownLatch(1);
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 		final JsonObject[] resultPassed = new JsonObject[1];
 		final String targetEntityId = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
-		GroupManipulation.delete(context, targetEntityId, entityIdBeforeClass,
+		GroupManipulation.delete(//context,
+		                         targetEntityId, entityIdBeforeClass,
 		                         (errorCode, result) -> {
 			                         errorCodePassed[0] = errorCode;
 			                         resultPassed[0] = result;
@@ -448,4 +292,131 @@ public class GroupManipulationTest
 		Assert.assertThat(resultPassed[0].getInteger("n"), is(1));
 	}
 
+//	/**
+//	 * read all the list of the ids contained in a specified group.
+//	 * it should return the json object result in the format of {elemsInGroup: [id...]}.
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Test
+//	public void test02readAllEntitiesContainedInAGroup()
+//			throws Exception
+//	{
+//		final CountDownLatch latch = new CountDownLatch(1);
+//		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
+//		final JsonObject[] resultPassed = new JsonObject[1];
+//
+//		GroupManipulation.readEntities(//context,
+//		                               entityIdBeforeClass,
+//		                               (errorCode, result) -> {
+//			                               errorCodePassed[0] = errorCode;
+//			                               resultPassed[0] = result;
+//
+//			                               latch.countDown();
+//		                               });
+//
+//		latch.await();
+//
+//		List<String> elemsInGroup = getList("elemsInGroup", resultPassed[0]);
+//		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
+//		for (String s : entityIdsInBeforeMethod) {
+//			Assert.assertThat(elemsInGroup, hasItem(s));
+//		}
+//	}
+
+//	/**
+//	 * read all the list of the groups in the app.
+//	 * it should return the json object result in the format of {groups: [id...]}.
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Test
+//	public void test02getAllGroupsInApp()
+//			throws Exception
+//	{
+//		final CountDownLatch latch = new CountDownLatch(1);
+//		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
+//		final JsonObject[] resultPassed = { new JsonObject() };
+//
+//		GroupManipulation.read(//context,
+//		                       (errorCode, result) -> {
+//			                       errorCodePassed[0] = errorCode;
+//			                       resultPassed[0] = result;
+//
+//			                       latch.countDown();
+//		                       });
+//		latch.await();
+//
+//		List<String> groupList = getList(GroupManipulation.FIELD_GROUPS, resultPassed[0]);
+//		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
+//		Assert.assertThat(groupList, hasItem(entityIdBeforeClass));
+//	}
+
+//	/**
+//	 * update all entities that contains entityIdBeforeClass as a group
+//	 * by replacing it with new id.
+//	 * total 7 documents should be updated.
+//	 * result format
+//	 * {ok:1, nModified: int, n: int}
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Test
+//	public void test07updateGroup()
+//			throws Exception
+//	{
+//		final CountDownLatch latch = new CountDownLatch(1);
+//		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
+//		final JsonObject[] resultPassed = new JsonObject[1];
+//		final String newGroup = entityIdsInBeforeMethod.get(entityIdsInBeforeMethod.size() - 1);
+//
+//		System.out.println("original: " + entityIdBeforeClass);
+//		System.out.println("new: " + newGroup);
+//
+//		GroupManipulation.update(//context,
+//		                         entityIdBeforeClass, newGroup,
+//		                         (errorCode, result) -> {
+//			                         errorCodePassed[0] = errorCode;
+//			                         resultPassed[0] = result;
+//
+//			                         latch.countDown();
+//		                         });
+//
+//		latch.await();
+//
+//		Assert.assertSame(PICOErrorCode.Success, errorCodePassed[0]);
+//		Assert.assertNotNull(resultPassed[0]);
+//		Assert.assertThat(resultPassed[0].getInteger("nModified"), is(7));
+//		Assert.assertThat(resultPassed[0].getInteger("n"), is(7));
+//	}
+
+//	/**
+//	 * delete a specified group through the application.
+//	 * <p>
+//	 * the result format
+//	 * { ok: 1, nModified: int , n: int}
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Test
+//	public void test09deleteGroupInApp()
+//			throws Exception
+//	{
+//		final CountDownLatch latch = new CountDownLatch(1);
+//		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
+//		final JsonObject[] resultPassed = new JsonObject[1];
+//		GroupManipulation.delete(context, entityIdBeforeClass,
+//		                         (errorCode, result) -> {
+//			                         errorCodePassed[0] = errorCode;
+//			                         resultPassed[0] = result;
+//
+//			                         latch.countDown();
+//		                         });
+//
+//		latch.await();
+//
+//		Assert.assertEquals(PICOErrorCode.Success, errorCodePassed[0]);
+//		Assert.assertThat(resultPassed[0].getInteger("nModified"), is(1));
+//		Assert.assertThat(resultPassed[0].getInteger("n"), is(1));
+//	}
 }

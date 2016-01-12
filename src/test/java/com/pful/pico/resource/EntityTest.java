@@ -2,7 +2,6 @@ package com.pful.pico.resource;
 
 import com.google.gson.Gson;
 import com.pful.pico.Service;
-import com.pful.pico.core.ApplicationContext;
 import com.pful.pico.core.PICOErrorCode;
 import com.pful.pico.core.PICOException;
 import com.pful.pico.db.MongoDB;
@@ -30,8 +29,8 @@ public class EntityTest
 
 	private static Vertx vertx = Vertx.vertx();
 	private static Entity entityBound;
-	private static ApplicationContext context =
-			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
+//	private static ApplicationContext context =
+//			new ApplicationContext(TestConstants.VALUE_APP_ID, TestConstants.VALUE_APP_TOKEN);
 
 	@BeforeClass
 	public static void setUpBefore()
@@ -86,7 +85,8 @@ public class EntityTest
 		final Entity[] entityPassed = new Entity[1];
 
 		try {
-			Entity.create(context, TestConstants.VALUE_TYPE, PROPERTIES, (errorCode, entity) -> {
+			Entity.create(//context,
+			              TestConstants.VALUE_TYPE, PROPERTIES, (errorCode, entity) -> {
 				try {
 					errorCodePassed[0] = errorCode;
 					entityPassed[0] = entity;
@@ -113,12 +113,12 @@ public class EntityTest
 		Assert.assertEquals(PICOErrorCode.Success, picoErrorCode);
 		Assert.assertNotNull(entity);
 		Assert.assertNotNull(entity.getId());
-		Assert.assertNotNull(entity.getAppId());
+//		Assert.assertNotNull(entity.getAppId());
 		Assert.assertNotNull(entity.getType());
 		Assert.assertNotNull(entity.getProperties());
 		Assert.assertNotNull(entity.getCreatedAt());
 		Assert.assertNotNull(entity.getUpdatedAt());
-		Assert.assertEquals(TestConstants.VALUE_APP_ID, entity.getAppId());
+//		Assert.assertEquals(TestConstants.VALUE_APP_ID, entity.getAppId());
 	}
 
 	@Test
@@ -129,14 +129,15 @@ public class EntityTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 
 		try {
-			MongoDB.mongoClientSingleton.find(MongoDB.COLLECTION_ENTITIES, new JsonObject().put("app_id", TestConstants.VALUE_APP_ID),
+			MongoDB.mongoClientSingleton.find(MongoDB.COLLECTION_ENTITIES, new JsonObject(),//.put("app_id", TestConstants.VALUE_APP_ID),
 			                                  res -> {
 				                                  if (res.succeeded()) {
 					                                  final String id = String.valueOf(res.result()
 					                                                                      .get(0)
 					                                                                      .getString("_id"));
 					                                  try {
-						                                  Entity.read(context, id,
+						                                  Entity.read(//context,
+						                                              id,
 						                                              (errorCode, entity) -> {
 							                                              entityBound = entity;
 
@@ -173,7 +174,8 @@ public class EntityTest
 		final PICOErrorCode[] errorCodePassed = new PICOErrorCode[1];
 
 		try {
-			Entity.read(context, new ObjectId().toString(), (errorCode, entity) -> {
+			Entity.read(//context,
+			            new ObjectId().toString(), (errorCode, entity) -> {
 				try {
 					errorCodePassed[0] = errorCode;
 					entityPassed[0] = entity;
